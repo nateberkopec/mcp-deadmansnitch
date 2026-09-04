@@ -303,6 +303,8 @@ export default async function factoryPlugin(amp: PluginAPI): Promise<void> {
   const { agent: reviewer, config: reviewerConfig } = configuredAgent("reviewer");
   const { agent: resolver, config: resolverConfig } = configuredAgent("conflict-resolver");
   const { agent: chief, config: chiefConfig } = configuredAgent("chief-of-staff");
+  const chiefStartupPrompt = (capacity: number): string =>
+    `Prepare the factory controller with maximum implementation concurrency ${capacity}. Read factory/guardrails/factory-operation.md, report readiness and existing control state, then wait for an explicit assignment. Startup grants no authority to launch workers or automations, create implementation issues, merge, or begin unattended execution.`;
 
   const reviewGenerations = new Map<number, number>();
   const reviewStates = new Map<number, ReviewState>();
@@ -811,7 +813,7 @@ export default async function factoryPlugin(amp: PluginAPI): Promise<void> {
 
   amp.registerTool({
     name: "factory_start_chief_of_staff",
-    description: "Start a chief-of-staff thread that creates and shepherds work just in time.",
+    description: "Start or recover the chief-of-staff thread, report readiness, and wait for an explicit assignment.",
     inputSchema: {
       type: "object",
       properties: {
@@ -832,7 +834,7 @@ export default async function factoryPlugin(amp: PluginAPI): Promise<void> {
       const existing = await control();
       if (existing !== undefined) {
         const thread = amp.threads.get(existing.threadID);
-        const prompt = `Run the factory with maximum concurrency ${existing.capacity}.`;
+        const prompt = chiefStartupPrompt(existing.capacity);
         const messages = JSON.stringify(await thread.messages({ full: true, from: "start", limit: 20 }));
         if (!messages.includes(prompt)) {
           await thread.appendUserMessage({ type: "user-message", content: prompt });
@@ -854,7 +856,7 @@ export default async function factoryPlugin(amp: PluginAPI): Promise<void> {
       }
       await thread.appendUserMessage({
         type: "user-message",
-        content: `Run the factory with maximum concurrency ${maxConcurrency}.`,
+        content: chiefStartupPrompt(maxConcurrency),
       });
       return JSON.stringify({ threadID: thread.id, maxConcurrency, controlIssue: record.stdout.trim() });
     },

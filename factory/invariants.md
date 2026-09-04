@@ -73,7 +73,7 @@ Factory-owned index. Implementing agents use routed guardrails; product requirem
 | INV-051 | Exit codes, never models, decide deterministic gates. | merge tool, CI, factory-operation guardrail | Guarded |
 | INV-052 | Main receives no DMS credentials; twin validation receives only the DMS test key; holdout validation receives only its repository token. | Amp project controls | Enforced |
 | INV-053 | Passing CI and a current-head reviewer with no further feedback permits merge; after activation, factory changes also need an owner-signed current head. | merge tool, factory-operation guardrail, seal | Guarded |
-| INV-054 | Publishing, destructive, paid-orb, and account actions require authority. | agent policy, authority controls | Guarded |
+| INV-054 | Publishing, destructive, and account actions require authority. | agent policy, authority controls | Guarded |
 | INV-055 | Transcript analysis stores only aggregate sanitized evidence. | agent definition, review, gitleaks | Guarded |
 | INV-056 | Normative knowledge lives in the repository; GitHub holds workflow state. | agent contexts, review | Guarded |
 | INV-057 | A worker gets five attempts; exhaustion halts; later attempts read prior mistakes. | serialized attempt controller, factory-operation guardrail | Guarded |

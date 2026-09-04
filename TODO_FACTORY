@@ -1,0 +1,138 @@
+# Factory activation checklist
+
+The factory implementation is built, committed, pushed, independently reviewed, and CI-green. It remains unsealed. Complete this checklist before authorizing unattended operation through product Phases 1–5.
+
+## 1. Install and test scheduled automation
+
+- [x] Enable GitHub Issues so the factory can persist control and worker state.
+- [ ] Start or recover the persistent chief-of-staff thread with an explicit maximum implementation concurrency.
+- [ ] Confirm fresh startup and recovery report readiness and wait for an explicit assignment without launching work.
+- [ ] Authorize a bounded automation qualification run before installing or dispatching automations.
+- [ ] From that active thread, run `factory.install-automations`.
+- [ ] Approve the prompted GitHub account mutation that stores the Amp webhook secret and enables the repository automation variable.
+- [ ] Manually dispatch `.github/workflows/automations.yml` and confirm the webhook wakes the correct chief thread.
+- [ ] Confirm an hourly run delayed past minute zero still selects the intended hourly slot.
+- [ ] Deliver the same webhook event more than once and confirm each event/automation pair launches at most one paid run.
+- [ ] Fill each suggestion queue and the implementation queue, then confirm finding-producing automation records `SKIPPED` without launching an orb.
+- [ ] Force an automation failure and confirm it records `FAILED`, Amp usage or explicit unavailability, and retries only within the agent's attempt limit.
+- [ ] Force completion-record persistence to fail, retry delivery, and confirm the factory recovers the completed thread rather than launching another paid run.
+- [ ] Confirm the control issue durably records automation attempt, status, thread ID, elapsed time, and Amp usage.
+- [ ] Confirm loop health can consume those durable records.
+
+Completion criterion: manual and scheduled delivery, delayed starts, duplicate delivery, backpressure, bounded retry, recovery, and durable accounting all pass without duplicate paid work.
+
+## 2. Qualify the complete implementation-issue lifecycle
+
+Use real GitHub state and an independently mergeable qualification issue. Keep one implementation issue mapped to one persistent worker.
+
+- [ ] Confirm the chief creates an implementation issue only while configured worker capacity is available.
+- [ ] Confirm activation applies both `factory:implementation` and `factory:active` labels.
+- [ ] Confirm the worker runs in a fresh mise-backed Amp orb and installs pinned tooling and plugin dependencies.
+- [ ] Confirm later attempts resume the same worker thread rather than creating another worker.
+- [ ] Cause a deterministic check to fail and confirm the worker receives a bounded retry.
+- [ ] Reach attempt three and confirm the worker is directed to read `docs/MISTAKES.md` before continuing.
+- [ ] Produce reviewer feedback and confirm it returns to the persistent worker for revision.
+- [ ] Change the pull-request head during or after review and confirm the stale review cannot authorize merge.
+- [ ] Confirm the changed head reruns CI and receives a fresh independent review.
+- [ ] Create a real merge conflict and confirm a fresh conflict-resolver orb handles it.
+- [ ] Confirm conflict resolution changes require another current-head CI and review cycle.
+- [ ] Confirm failed or incomplete checks block merge regardless of model judgment.
+- [ ] Confirm an accepting review is bound to the exact current head, issue, reviewer thread, prompt, generation, and response provenance.
+- [ ] Confirm merge succeeds only through `factory_merge_pull_request` after every deterministic gate passes.
+- [ ] Confirm merge removes `factory:active` and records total worker usage.
+- [ ] Restart or interrupt the controller and confirm GitHub state recovers the worker, attempt, PR, and control reservations.
+- [ ] Exercise startup reservation recovery and confirm it neither duplicates the chief nor loses the durable control issue.
+- [ ] Exercise the full attempt budget in a disposable qualification case and confirm exhaustion records `FACTORY_BLOCKED`, reports an interminable blocker, records worker usage, and halts further attempts.
+
+Completion criterion: the evidence covers retries, feedback, stale heads, conflicts, CI, merge, restart recovery, reservation recovery, and exhaustion. No path creates a second worker for one issue or merges from stale evidence.
+
+## 3. Validate fresh and resumed orb environments
+
+- [ ] Run implementation, review, conflict-resolution, QA, bug-finding, factory-improvement, and maintenance roles through their repository-owned agent definitions.
+- [ ] Confirm every non-chief role uses `executor: "orb"`.
+- [ ] Confirm fresh orbs run `factory/orb/setup`, use pinned mise tools, and run `npm ci` for the factory plugin.
+- [ ] Confirm resumed orbs run `factory/orb/resume` and restore the same deterministic environment.
+- [ ] Run `bin/check-dev-env` from a clean orb.
+- [ ] Run `mise run linecount:factory` and `mise run linecount:projects` from a clean orb.
+- [ ] Import and typecheck the plugin from a clean orb.
+- [ ] Confirm the main project receives no DMS credentials.
+- [ ] Confirm twin-validation receives only `DEADMANSNITCH_API_KEY`.
+- [ ] Confirm holdout-validation receives only `MCP_DEADMANSNITCH_HOLDOUT_TOKEN`.
+- [ ] Confirm logs, errors, reports, transcripts, and durable status records reveal no credential values.
+
+Completion criterion: fresh and resumed execution produce the same passing checks while maintaining the three-project credential boundary.
+
+## 4. Add later dispatcher coverage only when executable
+
+The checked automation configuration currently accepts only cron-driven work executable in the main Amp project. Unsupported project or event routes are rejected instead of silently delegated.
+
+- [ ] During the twin/conformance phase, add an executable twin-validation dispatcher for bounded live differential work.
+- [ ] Confirm only that dispatcher receives the factory-owned DMS key.
+- [ ] Confirm live runs create bounded owned records, clean them in the same run, halt on leftovers, and never mutate records they did not create.
+- [ ] During holdout qualification, add the required holdout-validation dispatch path without exposing the DMS key.
+- [ ] During the release phase, add release-pull-request event dispatch only after the release workflow is no longer a placeholder.
+- [ ] Extend `factory/check.mjs` whenever a new project or trigger becomes executable so unsupported routes continue to fail closed.
+
+Completion criterion: every configured route has a real dispatcher, correct project isolation, bounded runtime, durable status, and an explicit output destination. No configuration entry returns a delegated placeholder.
+
+## 5. Resolve remaining invariants honestly
+
+- [ ] Audit every `Planned` and `Partial` invariant in `factory/invariants.md`.
+- [ ] Move a factory or release invariant to `Guarded` only when a named review or authority control exists.
+- [ ] Move an invariant to `Enforced` only when a passing deterministic proof blocks violations.
+- [ ] Keep unimplemented product requirements honestly `Planned` until their product phase implements them.
+- [ ] Resolve release invariants INV-060, INV-061, and INV-062 before release activation.
+- [ ] Before the Phase 1–5 factory activation, explicitly decide whether Phase 6 release invariants are outside that activation boundary or must be implemented first.
+- [ ] Record that scope decision in the authoritative factory policy rather than relying on conversational context.
+
+Completion criterion: no non-product invariant is mislabeled, every `Guarded` or `Enforced` claim names real proof, and the Phase 6 boundary is explicit.
+
+## 6. Decide the lifecycle-model gate
+
+`factory/state-machine-research.md` proposes one shared typed transition table with exhaustive bounded checking. Its implementation is deferred until lifecycle qualification reveals whether it materially prevents invalid states.
+
+- [ ] Compare qualification failures and recovery complexity with the states and transitions proposed in `factory/state-machine-research.md`.
+- [ ] If the model prevents observed invalid states, implement one authoritative typed transition table shared by orchestration and tests.
+- [ ] Exhaustively enumerate bounded global and per-issue states and reject illegal transitions.
+- [ ] Cover capacity, one-worker ownership, attempt limits, changed heads, current-head review, CI, conflict resolution, merge, queue backpressure, automation claims, retries, and terminal blockers.
+- [ ] If the table adds no material protection, record the rejection and identify the serialized and durable controls that make it unnecessary.
+- [ ] Avoid a second lifecycle implementation that can drift from the plugin.
+
+Completion criterion: either a compact executable model guards the lifecycle or a durable decision explains why existing controls are sufficient.
+
+## 7. Apply the final seal
+
+This is the final explicit-human-authority step. Perform it only after every preceding activation criterion passes.
+
+- [ ] Re-run `bin/check-dev-env` at the exact proposed activation head.
+- [ ] Confirm GitHub CI is green at that exact head.
+- [ ] Obtain a final independent current-head review with no unresolved feedback.
+- [ ] Verify the working tree is clean and the activation commit is present on `origin/main`.
+- [ ] Enable branch protection on `main`.
+- [ ] Require the repository's passing CI checks.
+- [ ] Require owner-signed current heads for factory changes.
+- [ ] Restrict ordinary direct pushes so non-chief work enters through issue workers, review, and merge gates.
+- [ ] Seal the invariant that every role except chief of staff runs in an orb.
+- [ ] Reverify main, twin-validation, and holdout-validation credential isolation after protection changes.
+- [ ] Confirm publishing, destructive operations, account changes, and future activation changes still require explicit authority.
+- [ ] Owner-sign the exact activation head.
+- [ ] Issue the single explicit “go” that starts unattended execution.
+
+Completion criterion: the signed and protected activation head is the reviewed head, all required checks are enforced, secret boundaries remain intact, and unattended execution cannot bypass the factory lifecycle.
+
+## Activation blockers
+
+Stop activation if any of these remains true:
+
+- [ ] Scheduled work can be silently dropped, duplicated, or run without a timeout.
+- [ ] A finding-producing automation can run while its output queue is full.
+- [ ] One issue can acquire multiple workers.
+- [ ] A stale review or stale CI result can authorize merge.
+- [ ] Restart recovery depends on in-memory state alone.
+- [ ] Failed or exhausted runs lack durable terminal status and usage accounting.
+- [ ] A non-main automation route is configured without an executable isolated dispatcher.
+- [ ] Any role can access credentials outside its project boundary.
+- [ ] Any non-chief role can perform sealed work outside an orb.
+- [ ] Branch protection or owner-signature enforcement points at a different head than the final reviewed head.
+
+Activation is ready only when every applicable checklist item is complete and every blocker condition is false.

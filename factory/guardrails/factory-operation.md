@@ -1,5 +1,7 @@
 # Factory operation
 
+Starting or recovering the chief establishes controller identity and maximum implementation concurrency only. Report readiness and existing control state, then wait for an explicit assignment. Before activation, execute only human-authorized, bounded qualification work and stop when that assignment is complete. Unattended product execution requires the final seal and the human's explicit go. Controller startup and automation installation do not grant that authority.
+
 The chief of staff is the sole GitHub issue manager and lifecycle controller. It maintains the labeled capacities in `factory/queues.json`, creates implementation issues only when worker capacity exists, and promotes suggestions only after deduplication and triage.
 
 Every other factory role runs in its configured Amp orb with its repository-owned agent definition. One implementation issue has one persistent worker. Reviews, conflict resolution, judgments, and automation runs use separate orbs. A changed pull-request head repeats CI and review.

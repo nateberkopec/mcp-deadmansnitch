@@ -23,7 +23,7 @@ flowchart LR
 
 The chief of staff shepherds each issue until merge or an interminable blocker. Retries are bounded. Any changed head repeats CI and independent review. Conflicts go to a fresh resolver rather than the original worker. GitHub issues, branches, pull requests, reviews, and checks are durable workflow state.
 
-Most changes merge after CI passes and an independent reviewer has no further feedback. During construction, branch protection and signature enforcement remain disabled. Final activation installs those controls and requires an owner-signed current head for factory changes. Publishing, destructive operations, paid-orb actions, and account changes always require explicit authority.
+Most changes merge after CI passes and an independent reviewer has no further feedback. During construction, branch protection and signature enforcement remain disabled. Final activation installs those controls and requires an owner-signed current head for factory changes. Publishing, destructive operations, and account changes always require explicit authority.
 
 ## Layout
 

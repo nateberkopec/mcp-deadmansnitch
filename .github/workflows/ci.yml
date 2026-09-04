@@ -33,6 +33,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - run: sudo apt-get update && sudo apt-get install --yes fish
+      - run: fish bin/check-no-comments
       - run: rustup toolchain install 1.88.0 --profile minimal
       - run: cargo install cargo-deny --version 0.20.2 --locked
       - run: cargo deny check

@@ -24,7 +24,7 @@ run = "cargo test --workspace --lib"
 
 [tasks.lint]
 description = "Run formatting, Clippy, and dependency policy checks"
-run = "cargo fmt --check && cargo clippy --workspace --all-targets -- -D warnings && cargo deny check"
+run = "fish bin/check-no-comments && cargo fmt --check && cargo clippy --workspace --all-targets -- -D warnings && cargo deny check"
 
 [tasks."lint:secrets"]
 description = "Scan tracked and untracked project files for secrets"

@@ -1,8 +1,9 @@
 # Contributing
 
-Install the pinned Rust toolchain, then run:
+Install the pinned toolchain, then run:
 
 ```sh
+fish bin/check-no-comments
 cargo fmt --check
 cargo clippy --workspace --all-targets -- -D warnings
 cargo nextest run --workspace

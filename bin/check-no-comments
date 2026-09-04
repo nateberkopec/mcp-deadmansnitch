@@ -1,0 +1,20 @@
+#!/usr/bin/env fish
+set -l failed 0
+set -l slash_files (rg --files --hidden -g '*.rs' -g '*.ts' -g '*.js' -g '*.pkl' -g '*.css')
+set -l hash_files (rg --files --hidden -g '*.toml' -g '*.yml' -g '*.yaml' -g '*.fish' -g '*.sh' -g '*.bash')
+set -l markup_files (rg --files --hidden -g '*.html' -g '*.xml' -g '*.svg')
+
+if test (count $slash_files) -gt 0; and rg -n --pcre2 '(?<!:)//|/\*|\*/' $slash_files
+    set failed 1
+end
+if test (count $hash_files) -gt 0; and rg -n --pcre2 '(^|[[:space:]])#(?!\!)' $hash_files
+    set failed 1
+end
+if test (count $markup_files) -gt 0; and rg -n '<!--|-->' $markup_files
+    set failed 1
+end
+
+if test $failed -ne 0
+    echo 'CODE COMMENT INVARIANT: remove code comments; encode rationale in names, types, tests, attributes, or docs' >&2
+end
+exit $failed

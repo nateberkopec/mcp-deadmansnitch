@@ -6,7 +6,7 @@ function require_path
         set -g failures (math $failures + 1)
     end
 end
-for path in Cargo.toml Cargo.lock rust-toolchain.toml mise.toml hk.pkl deny.toml .gitleaks.toml AGENTS.md CLAUDE.md docs/ARCHITECTURE.md CONTRIBUTING.md LICENSE CHANGELOG.md docs/MISTAKES.md docs/LEARNINGS.md docs/DESIRES.md docs/factory-improvements.md .agents/setup .agents/resume .amp/plugins/factory/index.ts
+for path in Cargo.toml Cargo.lock rust-toolchain.toml mise.toml hk.pkl deny.toml .gitleaks.toml AGENTS.md CLAUDE.md docs/ARCHITECTURE.md CONTRIBUTING.md LICENSE CHANGELOG.md docs/MISTAKES.md docs/LEARNINGS.md docs/DESIRES.md docs/factory-improvements.md .agents/setup .agents/resume .amp/plugins/factory/index.ts bin/check-no-comments
     require_path $path
 end
 for crate in deadmanssnitch mcp-deadmanssnitch deadmanssnitch-twin deadmanssnitch-conformance

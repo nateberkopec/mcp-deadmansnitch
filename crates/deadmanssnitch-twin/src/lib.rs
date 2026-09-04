@@ -1,7 +1,7 @@
 #![forbid(unsafe_code)]
-//! Digital twin for the Dead Man's Snitch API.
+#![doc = "Digital twin for the Dead Man's Snitch API."]
 
-/// Library version, used by workspace smoke tests.
+#[doc = "Library version, used by workspace smoke tests."]
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[cfg(test)]

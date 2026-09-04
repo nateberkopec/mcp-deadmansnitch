@@ -1,7 +1,7 @@
 #![forbid(unsafe_code)]
-//! Differential conformance runner scaffold.
+#![doc = "Differential conformance runner scaffold."]
 
-/// Library version, used by workspace smoke tests.
+#[doc = "Library version, used by workspace smoke tests."]
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[cfg(test)]

@@ -80,8 +80,9 @@ that this section does not list.
 | Toolchain | Use Rust edition 2024. The MSRV is 1.88, which is rmcp's floor. Install the stable toolchain with `mise`. Use no Nix |
 | MCP SDK | Pin `rmcp` to `=3.2.x`. Enable the features `server, macros, transport-io, schemars, elicitation, transport-streamable-http-server` |
 | Worker | The worker is Amp's agent. Hold it constant, as Lopopolo's fixed-worker thesis says. AGENTS.md is the source of truth, and Amp reads it natively. `CLAUDE.md` is an `@AGENTS.md` shim for a person who runs Claude Code locally. Use no skills. The routed docs hold everything that a skill would teach. Requalify the harness each time the worker changes |
-| Dev-env standard | Applied. `mise.toml` supplies the tasks `test`, `test:fast`, `lint` (fan-out), `lint:secrets`, `build`, and `serve`. Each task is a one-line wrapper around the exact `cargo` command that `CONTRIBUTING.md` documents. The `hk.pkl` pre-commit hook runs lint, secrets, and `test:fast`. A `commit-msg` step enforces conventional commits. `serve` starts the twin and the server in HTTP mode. `check-dev-env.fish` runs at the end of Phase 0, and its failures are the worklist |
-| Task runner | Use nothing beyond cargo and mise. Add one fish wrapper for the scenario runner, which uses more than one process. The wrapper prints the commands that it runs |
+| Code comments | Code comments are prohibited in every source format. Shebangs are executable metadata, not comments. Put rationale in names, types, tests, attributes, or routed documentation, and enforce the rule with the repo-owned comment linter |
+| Dev-env standard | Applied. `mise.toml` supplies the tasks `test`, `test:fast`, `lint` (fan-out, including the comment linter), `lint:secrets`, `build`, and `serve`. Each task is a one-line wrapper around the exact `cargo` command that `CONTRIBUTING.md` documents. The `hk.pkl` pre-commit hook runs lint, secrets, and `test:fast`. A `commit-msg` step enforces conventional commits. `serve` starts the twin and the server in HTTP mode. `check-dev-env.fish` runs at the end of Phase 0, and its failures are the worklist |
+| Task runner | Use nothing beyond cargo and mise for task orchestration. Keep small fish scripts for cross-process workflows and repo-owned policy checks, including scenarios, commit messages, and the no-comments invariant. Wrappers print the commands that they run |
 | Pre-commit test scope | `test:fast` runs the unit tests and the in-process tool tests. The conformance tests, the binary contract test, and the scenarios run in CI only |
 | Coverage | Enforce 100% coverage on `deadmanssnitch` and on the twin's state machine. Elsewhere, use a ratchet, so that the coverage never decreases. Run `cargo mutants` weekly as report-only |
 | Scenario driver | The driver is the Amp SDK with `executor: 'orb'`. Because Amp ignores per-run `mcpConfig` for orb execution, the validation project's MCP configuration points at the server, and the server points at the twin. An acting agent uses the server. A judge agent reads the transcript and the twin state dump. The judge agent runs in a separate fresh orb and cannot reach the implementation threads |
@@ -217,7 +218,7 @@ a human gate:
 ### 2.1 Tools
 
 Each tool takes flat arguments in snake_case with `deny_unknown_fields`. Each
-field has a doc comment, which becomes the schema description. Each tool sets
+field supplies schema-description metadata without comment syntax. Each tool sets
 all five annotations explicitly and has an `outputSchema`. Each tool returns
 the same payload twice: as `structuredContent` and as pretty-printed JSON text.
 Each result that references a snitch includes a `resource_link` to
@@ -436,7 +437,7 @@ The holdout scenarios live in the private repo, not here.
 
 ### 6.2 Verifiers (each names the invariant it protects in its failure message)
 
-- Crate-root lint block: `clippy::all`, `clippy::pedantic`, `clippy::cargo`, `missing_docs`, `missing_debug_implementations`, `unused_qualifications`, and `#![forbid(unsafe_code)]`. The source warns, and CI uses `-D warnings`. Each `allow` is local and justified.
+- Crate-root lint block: `clippy::all`, `clippy::pedantic`, `clippy::cargo`, `missing_docs`, `missing_debug_implementations`, `unused_qualifications`, and `#![forbid(unsafe_code)]`. The source warns, and CI uses `-D warnings`. Each `allow` is local and carries a `reason` attribute rather than a comment.
 - `clippy.toml` `disallowed-types`: blocks `serde_json::Value` outside `deadmanssnitch::wire` and the twin, and blocks `std::time::SystemTime::now` outside the clock module.
 - Test: every tool has all five annotations. No tool is both read-only and destructive. Each name matches `^[A-Za-z0-9_.-]{1,128}$`. Each description is under 1,024 characters. `tools/list` is sorted, stays under a fixed byte budget, and carries a positive `ttlMs` with `cacheScope: "public"`.
 - Test: `instructions` is non-empty, is under 2 KB, and mentions the tool set that is actually enabled.
@@ -450,6 +451,7 @@ The holdout scenarios live in the private repo, not here.
 - Coverage: `cargo llvm-cov` reports 100% on `deadmanssnitch` and on the twin state machine. A ratchet file holds the floor for the rest.
 - CI also runs `cargo deny check`, `cargo semver-checks` on `deadmanssnitch`, `cargo fmt --check`, and `cargo doc` with broken-link denial. It runs `cargo nextest` on stable and on the MSRV, and it runs the feature matrix (default, none, all).
 - `cargo mutants` runs on the library and on the twin's state machine. It runs weekly and is report-only.
+- The repo-owned comment linter rejects comment syntax in every tracked source format and exempts only executable shebangs. CI and `mise run lint` invoke it.
 - hk pre-commit runs `lint`, `lint:secrets`, and `test:fast`. `lint:secrets` runs gitleaks with `.env` allowlisted. The `commit-msg` step checks the conventional-commit format.
 - The Inspector runs with `--cli --strict` against the built binary in CI.
 - The official conformance suite runs against HTTP mode. The 2026-07-28 run gates CI and uses a checked-in expected-failures baseline, in which the auth entries are justified. The 2025-11-25 run is report-only.

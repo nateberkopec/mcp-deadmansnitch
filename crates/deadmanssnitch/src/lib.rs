@@ -1,7 +1,7 @@
 #![forbid(unsafe_code)]
-//! Typed client for the Dead Man's Snitch API.
+#![doc = "Typed client for the Dead Man's Snitch API."]
 
-/// Library version, used by workspace smoke tests.
+#[doc = "Library version, used by workspace smoke tests."]
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[cfg(test)]

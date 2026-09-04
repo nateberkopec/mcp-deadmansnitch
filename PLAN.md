@@ -201,9 +201,10 @@ therefore they are code, not prompt text.
 The plane is Amp. Each attempt, review, judgment, QA run, and background loop
 runs in its own orb. The local machine runs the orchestrator plugin and one
 chief-of-staff agent, and nothing else. Amp's schedules and durable webhooks
-wake the sleeping orbs for the loops. A failed run pauses an Amp automation.
-Therefore each loop delegates to its runbook and reports its status at the end,
-and one loop watches that the other loops are not paused.
+wake the sleeping orbs for the loops. A failed run pauses an Amp automation,
+so the plugin registers a durable factory-health webhook as the recovery path.
+Each loop delegates to its runbook and reports its status at the end, and the
+loop-health loop watches for paused schedules.
 
 Two generative processes feed the factory. Both expand the spec, so both end at
 a human gate:

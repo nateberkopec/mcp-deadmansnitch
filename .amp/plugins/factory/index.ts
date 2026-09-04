@@ -55,7 +55,30 @@ export async function phaseZeroGateSpike(amp: PluginAPI): Promise<string> {
 }
 
 /** Register the Phase 0 pipeline entry points. Run them from an orb. */
-export default function factoryPlugin(amp: PluginAPI): void {
+export default async function factoryPlugin(amp: PluginAPI): Promise<void> {
+  let webhookRegistered = false;
+  if (amp.system.executor.kind === "remote") {
+    await amp.createWebhook({
+      key: "factory-health",
+      handler: async (event, ctx) => {
+        await ctx.thread.appendUserMessage({
+          type: "user-message",
+          content: `Factory webhook event ${event.id} arrived. Read docs/automations/loop-health.md and report status.`,
+        });
+      },
+    });
+    webhookRegistered = true;
+  }
+
+  amp.registerTool({
+    name: "factory_webhook_status",
+    description: "Report whether this orb registered the durable factory webhook path.",
+    inputSchema: { type: "object", properties: {}, required: [] },
+    async execute() {
+      return JSON.stringify({ webhookRegistered });
+    },
+  });
+
   amp.registerTool({
     name: "factory_phase_zero_gate_spike",
     description: "Run the deterministic Phase 0 fail-then-pass gate spike in this orb.",

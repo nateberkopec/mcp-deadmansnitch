@@ -5,7 +5,7 @@ The factory implementation is built, committed, pushed, independently reviewed, 
 ## 1. Install and test scheduled automation
 
 - [x] Enable GitHub Issues so the factory can persist control and worker state.
-- [ ] Start or recover the persistent chief-of-staff thread with an explicit maximum implementation concurrency.
+- [x] Start or recover the persistent chief-of-staff thread with an explicit maximum implementation concurrency.
 - [ ] Confirm fresh startup and recovery report readiness and wait for an explicit assignment without launching work.
 - [ ] Authorize a bounded automation qualification run before installing or dispatching automations.
 - [ ] From that active thread, run `factory.install-automations`.
@@ -20,6 +20,8 @@ The factory implementation is built, committed, pushed, independently reviewed, 
 - [ ] Confirm loop health can consume those durable records.
 
 Completion criterion: manual and scheduled delivery, delayed starts, duplicate delivery, backpressure, bounded retry, recovery, and durable accounting all pass without duplicate paid work.
+
+Startup evidence (2026-09-05): control issue #4 records chief thread `T-01a06e11-ff37-7193-bd63-40f47e1e8dee` and concurrency 1. The chief reported prepared and waiting at `e585236`, with no workers or automations launched. CI passed at that head. Startup recovered the reservation left by a failed orb launch; recovery of an existing chief remains untested. Fresh-orb environment qualification remains blocked by missing fish and initial cargo/hk PATH failures. The orb's GitHub integration also returned 403 for repository variables and branch-protection reads.
 
 ## 2. Qualify the complete implementation-issue lifecycle
 

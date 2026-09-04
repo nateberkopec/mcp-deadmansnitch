@@ -69,7 +69,8 @@ that this section does not list.
 | Model and provider | Deferred. The plugin exposes model and effort as parameters of each step. This stage makes no choice |
 | Attempt budget | Allow five attempts for each gate, each in a fresh orb, from the last commit that passed. Then halt and write a report. The report gives what the attempts tried, what failed, and the reviewer's last verdict. Attempt three and each later attempt must read the docs/MISTAKES.md entries from the earlier attempts |
 | Parallel attempts | For the twin state machine and for the HTTP-plus-conformance gate, run three attempts in parallel orbs. A code step makes a table with one row for each attempt. The table gives the lines of code from `tokei`, the clippy cognitive complexity, the test count, the coverage, and the gate results. A reviewer agent in a fresh orb selects the winner and must cite the table. Keep the losing branches for one week, then delete them |
-| Merge policy | Merge a pull request as soon as CI passes and an independent reviewer has no further feedback. If it changes the factory, require trusted human approval of the current head through the `Factory Approval` check. Publishing and account changes still require explicit authority |
+| Merge policy | Merge a pull request as soon as CI passes and an independent reviewer has no further feedback. After factory activation, factory changes additionally require an owner-signed current head. Publishing and account changes still require explicit authority |
+| Factory activation | Keep branch protection and the owner-signature gate disabled while the factory is under active construction. Installing them is the final preflight before the human says go and unattended Phase 1–5 execution begins |
 | Work queue | The work queue is GitHub issues. A human sets a label to mark an issue approved. The plugin's webhook launches an implementation thread on that label |
 | Cost tracking | Each run report records the orb hours for each gate and for each loop |
 
@@ -555,7 +556,7 @@ runbook states the condition that should remain true, the drift signal, the
 evidence that a change restores the condition, the authority level, the durable
 state that the loop keeps, and its retirement condition. The prompt of each loop
 is two sentences that delegate to the runbook. Each loop ends by writing a
-status line that the loop-health loop reads. Each loop that changes anything opens a PR. The factory merges it after CI passes and an independent reviewer has no further feedback; factory changes additionally require current-head human approval.
+status line that the loop-health loop reads. Each loop that changes anything opens a PR. The factory merges it after CI passes and an independent reviewer has no further feedback; after activation, factory changes additionally require an owner-signed current head.
 
 | Loop | Cadence | Authority | What it does |
 |---|---|---|---|

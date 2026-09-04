@@ -38,8 +38,6 @@ paths=(
   .agents/setup
   .agents/resume
   .amp/plugins/factory/index.ts
-  .github/workflows/factory-approval.yml
-  bin/check-factory-approval
   bin/check-no-comments
 )
 

@@ -1,3 +1,5 @@
-# Automation runbooks
+# Automations
 
-Each background loop is delegated to its named runbook. Runbooks define authority and retirement; loop prompts contain no hidden policy. Automation-specific state belongs beside its runbook rather than at the top of `docs/`. Pull requests merge after CI passes and an independent reviewer has no further feedback; after activation, factory changes additionally require an owner-signed current head.
+`config.json` is the schedule and authority source of truth. Each entry selects an agent from `factory/agents/`, defines its Amp project, trigger, condition, output, and retirement condition, and names a capped queue when it can produce findings. The chief owns every GitHub issue mutation and skips finding runs while their queue is full.
+
+The hourly dispatcher wakes the persistent chief thread with an idempotency key. Automation claims record attempt, status, thread, elapsed time, and Amp usage on the control issue; failed claims retry within the agent budget. Reviews and conflict resolution record the same usage, and persistent workers record total usage at merge or exhaustion. Loop health consumes these durable records. Non-main projects and event triggers enter configuration only when their own dispatcher is executable.

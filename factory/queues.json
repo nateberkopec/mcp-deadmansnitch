@@ -1,0 +1,27 @@
+{
+  "implementation": {
+    "label": "factory:implementation",
+    "activeLabel": "factory:active",
+    "capacity": "control.maxConcurrency",
+    "owner": "chief-of-staff",
+    "cue": true
+  },
+  "factoryImprovement": {
+    "label": "factory:suggestion:factory",
+    "capacity": 5,
+    "owner": "chief-of-staff",
+    "cue": false
+  },
+  "qa": {
+    "label": "factory:suggestion:qa",
+    "capacity": 5,
+    "owner": "chief-of-staff",
+    "cue": false
+  },
+  "bug": {
+    "label": "factory:suggestion:bug",
+    "capacity": 5,
+    "owner": "chief-of-staff",
+    "cue": false
+  }
+}

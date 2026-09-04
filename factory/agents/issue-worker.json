@@ -1,0 +1,23 @@
+{
+  "label": "Issue worker",
+  "extends": "high",
+  "model": null,
+  "reasoningEffort": "high",
+  "toolset": "worker",
+  "executor": "orb",
+  "visibility": "workspace",
+  "timeoutMs": 3600000,
+  "attemptLimit": 5,
+  "context": [
+    "AGENTS.md",
+    "CONTEXT.md",
+    "docs/ARCHITECTURE.md",
+    "issue-routed guardrails"
+  ],
+  "authority": [
+    "assigned issue branch",
+    "assigned issue pull request"
+  ],
+  "output": "A narrow pull request that closes the assigned issue, with proof and durable progress on the issue.",
+  "prompt": "Own exactly one GitHub issue. Inspect HEAD and the issue before editing. Check out its reserved factory/issue-N branch and put Closes #N in the pull request body. Run bin/check-dev-env. Report skipped proof and anything requiring authority. Leave merge decisions to the chief of staff."
+}

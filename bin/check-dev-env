@@ -20,10 +20,14 @@ paths=(
   .gitleaks.toml
   AGENTS.md
   CLAUDE.md
+  CONTEXT.md
+  SPEC.md
   docs/ARCHITECTURE.md
-  docs/PLAN.md
   factory/readme.md
+  factory/roadmap.md
   factory/invariants.md
+  factory/queues.json
+  factory/automations/config.json
   CONTRIBUTING.md
   LICENSE
   CHANGELOG.md
@@ -33,8 +37,14 @@ paths=(
   docs/history/README.md
   docs/history/phase-0-plan.md
   docs/history/phase-0-report.md
-  factory/automations/factory-improvement/runbook.md
-  factory/automations/factory-improvement/backlog.md
+  factory/agents/chief-of-staff.json
+  factory/agents/issue-worker.json
+  factory/agents/reviewer.json
+  factory/agents/conflict-resolver.json
+  factory/agents/qa-explorer.json
+  factory/agents/bug-finder.json
+  factory/agents/factory-improver.json
+  factory/agents/maintenance.json
   .agents/setup
   .agents/resume
   .amp/plugins/factory/index.ts
@@ -46,20 +56,16 @@ for path in "${paths[@]}"; do
 done
 
 for crate in deadmanssnitch mcp-deadmanssnitch deadmanssnitch-twin deadmanssnitch-conformance; do
-  require_path "$crate/Cargo.toml"
+  require_path "projects/$crate/Cargo.toml"
 done
 
-for guard in rust-code testing-and-proof tool-contract-stability errors-and-retries dependencies twin-fidelity; do
+for guard in rust-code testing-and-proof tool-contract-stability errors-and-retries dependencies twin-fidelity factory-operation; do
   require_path "factory/guardrails/$guard.md"
 done
 
-for runbook in twin-drift dependency-sweep release security-red-team doc-drift coverage-ratchet flake-hunter refactor qa-explorer loop-health; do
-  require_path "factory/automations/$runbook.md"
-done
-
-for removed in .python-version .pre-commit-config.yaml .envrc .claude; do
+for removed in .python-version .pre-commit-config.yaml .envrc .claude docs/PLAN.md; do
   if [[ -e "$removed" ]]; then
-    printf 'PYTHON REMNANT: %s\n' "$removed"
+    printf 'REMOVED PATH: %s\n' "$removed"
     failures=$((failures + 1))
   fi
 done
@@ -91,7 +97,7 @@ for task in lint lint:secrets test build; do
   fi
 done
 
-if ! npm --prefix factory/plugin run typecheck; then
+if ! npm --prefix factory/amp/plugin run typecheck; then
   printf '%s\n' 'FAILED: factory plugin typecheck'
   failures=$((failures + 1))
 fi

@@ -1,5 +1,5 @@
 [workspace]
-members = ["deadmanssnitch", "mcp-deadmanssnitch", "deadmanssnitch-twin", "deadmanssnitch-conformance"]
+members = ["projects/deadmanssnitch", "projects/mcp-deadmanssnitch", "projects/deadmanssnitch-twin", "projects/deadmanssnitch-conformance"]
 resolver = "3"
 
 [workspace.package]

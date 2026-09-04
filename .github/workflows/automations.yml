@@ -1,0 +1,35 @@
+name: Factory Automations
+on:
+  schedule:
+    - cron: "0 * * * *"
+  workflow_dispatch:
+    inputs:
+      automation:
+        description: Automation name; empty runs all currently due
+        required: false
+        type: string
+permissions:
+  contents: read
+jobs:
+  dispatch:
+    if: github.event_name == 'workflow_dispatch' || vars.FACTORY_AUTOMATIONS_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Select due automations
+        env:
+          AUTOMATION: ${{ inputs.automation }}
+        run: node factory/automations/due.mjs > /tmp/automations.json
+      - name: Wake Amp
+        env:
+          AMP_FACTORY_WEBHOOK: ${{ secrets.AMP_FACTORY_WEBHOOK }}
+          IDEMPOTENCY_KEY: ${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          payload=$(cat /tmp/automations.json)
+          if [ "$payload" != '[]' ]; then
+            curl --fail --silent --show-error \
+              --header 'content-type: application/json' \
+              --header "idempotency-key: $IDEMPOTENCY_KEY" \
+              --data "{\"automations\":$payload}" \
+              "$AMP_FACTORY_WEBHOOK"
+          fi

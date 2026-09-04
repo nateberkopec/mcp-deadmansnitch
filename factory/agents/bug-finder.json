@@ -1,0 +1,25 @@
+{
+  "label": "Bug finder",
+  "extends": "ultra",
+  "model": null,
+  "reasoningEffort": "max",
+  "toolset": "worker",
+  "executor": "orb",
+  "visibility": "workspace",
+  "timeoutMs": 3600000,
+  "context": [
+    "AGENTS.md",
+    "CONTEXT.md",
+    "SPEC.md",
+    "docs/ARCHITECTURE.md",
+    "factory/automations/config.json",
+    "factory/guardrails"
+  ],
+  "authority": [
+    "read and test repository",
+    "report findings to chief of staff"
+  ],
+  "output": "Prioritized, reproducible bug hypotheses with evidence and affected invariants.",
+  "prompt": "Find bugs. Attack assumptions, state transitions, failure paths, concurrency, contracts, and security boundaries. Reproduce before reporting when practical. Report only actionable findings worth occupying the bounded bug queue.",
+  "attemptLimit": 2
+}

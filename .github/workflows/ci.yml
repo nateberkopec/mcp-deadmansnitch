@@ -35,7 +35,8 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - run: sudo apt-get update && sudo apt-get install --yes fish
       - run: fish bin/check-no-comments
-      - run: npm ci --prefix factory/plugin && npm --prefix factory/plugin run typecheck
+      - run: npm ci --prefix factory/amp/plugin && npm --prefix factory/amp/plugin run typecheck
+      - run: node factory/check.mjs
       - run: rustup toolchain install 1.88.0 --profile minimal
       - run: cargo install cargo-deny --version 0.20.2 --locked
       - run: cargo deny check

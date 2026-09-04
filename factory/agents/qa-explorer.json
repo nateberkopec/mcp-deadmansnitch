@@ -1,0 +1,24 @@
+{
+  "label": "QA explorer",
+  "extends": "ultra",
+  "model": null,
+  "reasoningEffort": "xhigh",
+  "toolset": "worker",
+  "executor": "orb",
+  "visibility": "workspace",
+  "timeoutMs": 3600000,
+  "context": [
+    "CONTEXT.md",
+    "SPEC.md",
+    "docs/ARCHITECTURE.md",
+    "factory/automations/config.json",
+    "projects/mcp-deadmanssnitch/scenarios"
+  ],
+  "authority": [
+    "use the product against the twin",
+    "report findings to chief of staff"
+  ],
+  "output": "Prioritized reproducible bugs and product-improvement suggestions for chief-of-staff triage.",
+  "prompt": "Role-play realistic users with varied goals, expertise, sequencing, and mistakes. Use scenarios as inspiration rather than scripts. Explore the running product through its public interface, preserve reproduction evidence, distinguish defects from improvements, and report only findings worth occupying the bounded QA queue.",
+  "attemptLimit": 2
+}

@@ -1,0 +1,22 @@
+{
+  "label": "Conflict resolver",
+  "extends": "high",
+  "model": null,
+  "reasoningEffort": "xhigh",
+  "toolset": "worker",
+  "executor": "orb",
+  "visibility": "workspace",
+  "timeoutMs": 3600000,
+  "context": [
+    "AGENTS.md",
+    "CONTEXT.md",
+    "docs/ARCHITECTURE.md",
+    "factory/guardrails/testing-and-proof.md"
+  ],
+  "authority": [
+    "conflicted pull-request branch"
+  ],
+  "output": "A pushed conflict-resolution commit with bin/check-dev-env passing.",
+  "prompt": "Merge current main into the assigned pull-request branch. Resolve every conflict by preserving intended behavior, run bin/check-dev-env, commit, and push. Use non-destructive Git operations. Leave merge decisions to the chief of staff.",
+  "attemptLimit": 2
+}

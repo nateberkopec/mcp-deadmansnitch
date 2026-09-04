@@ -25,7 +25,7 @@ run = "cargo test --workspace --lib"
 
 [tasks.lint]
 description = "Run formatting, Clippy, and dependency policy checks"
-run = "fish bin/check-no-comments && cargo fmt --check && cargo clippy --workspace --all-targets -- -D warnings && cargo deny check"
+run = "fish bin/check-no-comments && node factory/check.mjs && cargo fmt --check && cargo clippy --workspace --all-targets -- -D warnings && cargo deny check"
 
 [tasks."lint:secrets"]
 description = "Scan tracked and untracked project files for secrets"
@@ -35,9 +35,13 @@ run = "gitleaks dir --config .gitleaks.toml --redact --no-banner ."
 description = "Build the release workspace"
 run = "cargo build --workspace --release"
 
-[tasks.linecount]
-description = "Count source lines, excluding generated and vendored files"
-run = "cloc . --exclude-dir=.git,target,tmp,node_modules"
+[tasks."linecount:factory"]
+description = "Count factory source lines"
+run = "cloc factory --exclude-dir=node_modules"
+
+[tasks."linecount:projects"]
+description = "Count source lines in each product project"
+run = "fish -c 'for project in projects/*; echo; echo $project; cloc $project --exclude-dir=target; end'"
 
 [tasks.serve]
 description = "Start the twin and the HTTP MCP server"

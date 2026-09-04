@@ -2,7 +2,7 @@
 
 The factory turns repository state into reviewed, verified changes. Amp supplies isolated orbs; this directory supplies orchestration, runbooks, guardrails, and deterministic gates.
 
-The chief of staff is the only role that reads `docs/PLAN.md` as a phase guide. It compares the plan with `HEAD`, open issues, pull requests, and active workers; identifies the next independent units of work; and creates issues only when capacity exists. One issue owns one implementation worker. Phases influence what work is timely but are not factory states.
+The chief of staff is the only role that reads `SPEC.md` with `factory/roadmap.md`. It compares them with `HEAD`, open issues, pull requests, and active agents; then creates issues only when capacity exists. One issue owns one worker. Phases guide timing but are not factory states.
 
 ```mermaid
 flowchart LR
@@ -27,10 +27,11 @@ Most changes merge after CI passes and an independent reviewer has no further fe
 
 ## Layout
 
-- `factory/plugin/` is the executable control plane; `.amp/plugins/factory` is its Amp adapter.
+- `factory/agents/` defines agent models, reasoning, tools, context, prompts, authority, and outputs.
+- `factory/amp/plugin/` is the executable control plane; `.amp/plugins/factory` is its Amp adapter.
+- `factory/automations/config.json` and `factory/queues.json` define recurring work and backpressure.
 - `factory/orb/` establishes the pinned mise environment; `.agents/` exposes Amp's required paths.
-- `factory/guardrails/` and `factory/automations/` contain routed worker instructions.
-- `factory/invariants.md` records factory-owned enforcement.
-- `deadmanssnitch/`, `mcp-deadmanssnitch/`, `deadmanssnitch-twin/`, and `deadmanssnitch-conformance/` are the product projects.
+- `factory/guardrails/`, `factory/invariants.md`, and `factory/roadmap.md` hold policy.
+- `projects/` contains the four product projects.
 
 The main Amp project has no DMS credentials. Twin validation receives only the DMS test key. Holdout validation receives only its repository token and tests through the twin. The privileged DMS account has functionally unlimited capacity, but differential runs remain bounded and self-cleaning.

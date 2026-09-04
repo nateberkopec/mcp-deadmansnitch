@@ -6,6 +6,6 @@ if ! command -v mise >/dev/null 2>&1; then
 fi
 mise trust --yes
 mise install
-mise exec -- npm ci --prefix factory/plugin
+mise exec -- npm ci --prefix factory/amp/plugin
 mise exec -- cargo fetch --locked
 mise exec -- cargo build -p deadmanssnitch-twin

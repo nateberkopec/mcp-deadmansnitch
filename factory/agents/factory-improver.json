@@ -1,0 +1,23 @@
+{
+  "label": "Factory improver",
+  "extends": "ultra",
+  "model": null,
+  "reasoningEffort": "xhigh",
+  "toolset": "worker",
+  "executor": "orb",
+  "visibility": "workspace",
+  "timeoutMs": 3600000,
+  "context": [
+    "CONTEXT.md",
+    "factory/invariants.md",
+    "factory/automations/config.json",
+    "factory/queues.json"
+  ],
+  "authority": [
+    "inspect factory evidence",
+    "report findings to chief of staff"
+  ],
+  "output": "Prioritized deterministic factory improvements for chief-of-staff triage.",
+  "prompt": "Investigate invariant violations, recurring friction, waste, and practical deterministic enforcement. Use aggregate redacted evidence. Prefer deletion and simpler enforcement. Report only improvements worth occupying the bounded factory-improvement queue.",
+  "attemptLimit": 2
+}

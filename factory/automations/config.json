@@ -1,0 +1,115 @@
+{
+  "version": 1,
+  "automations": {
+    "qaExplorer": {
+      "agent": "qa-explorer",
+      "project": "main",
+      "cron": "0 */6 * * *",
+      "authority": "use product against twin",
+      "condition": "discover reproducible user-facing defects or improvements",
+      "output": "suggestions",
+      "queue": "qa",
+      "skipWhenFull": true,
+      "retirement": "exploratory QA is replaced"
+    },
+    "bugFinder": {
+      "agent": "bug-finder",
+      "project": "main",
+      "cron": "0 3 * * *",
+      "authority": "read and test repository",
+      "condition": "discover reproducible defects",
+      "output": "suggestions",
+      "queue": "bug",
+      "skipWhenFull": true,
+      "retirement": "product development stops"
+    },
+    "factoryImprovement": {
+      "agent": "factory-improver",
+      "project": "main",
+      "cron": "0 2 * * *",
+      "authority": "inspect factory evidence",
+      "condition": "improve reliability or reduce cost, context, words, or code",
+      "output": "suggestions",
+      "queue": "factoryImprovement",
+      "skipWhenFull": true,
+      "retirement": "factory is removed"
+    },
+    "securityRedTeam": {
+      "agent": "maintenance",
+      "project": "main",
+      "cron": "0 5 * * 2",
+      "authority": "read and test auth, origins, untrusted text, secrets, and URL boundaries",
+      "condition": "demonstrated security impact",
+      "output": "implementation-candidate",
+      "retirement": "HTTP product is removed",
+      "queue": "implementation",
+      "skipWhenFull": true
+    },
+    "dependencySweep": {
+      "agent": "maintenance",
+      "project": "main",
+      "cron": "0 6 1 * *",
+      "authority": "inspect dependency support, pins, licenses, and advisories",
+      "condition": "tested update is due after cooldown",
+      "output": "implementation-candidate",
+      "retirement": "dependencies are removed",
+      "queue": "implementation",
+      "skipWhenFull": true
+    },
+    "docDrift": {
+      "agent": "maintenance",
+      "project": "main",
+      "cron": "0 6 * * 3",
+      "authority": "inspect documentation paths and claims",
+      "condition": "documented path, claim, or generated table drifts",
+      "output": "implementation-candidate",
+      "retirement": "documentation is generated",
+      "queue": "implementation",
+      "skipWhenFull": true
+    },
+    "coverageRatchet": {
+      "agent": "maintenance",
+      "project": "main",
+      "cron": "0 7 1 * *",
+      "authority": "inspect coverage history",
+      "condition": "sustained coverage exceeds its floor",
+      "output": "implementation-candidate",
+      "retirement": "coverage is completely enforced",
+      "queue": "implementation",
+      "skipWhenFull": true
+    },
+    "flakeHunter": {
+      "agent": "maintenance",
+      "project": "main",
+      "cron": "0 7 * * 4",
+      "authority": "repeat deterministic tests with recorded seeds",
+      "condition": "equivalent runs differ",
+      "output": "implementation-candidate",
+      "retirement": "test suite is removed",
+      "queue": "implementation",
+      "skipWhenFull": true
+    },
+    "refactor": {
+      "agent": "maintenance",
+      "project": "main",
+      "cron": "0 8 * * 5",
+      "authority": "inspect equivalent behavior for safe simplification",
+      "condition": "tests and coverage hold while source shrinks",
+      "output": "implementation-candidate",
+      "retirement": "no qualifying simplification remains",
+      "queue": "implementation",
+      "skipWhenFull": true
+    },
+    "loopHealth": {
+      "agent": "maintenance",
+      "project": "main",
+      "cron": "0 1 * * *",
+      "authority": "inspect automation status",
+      "condition": "an automation is stale, failed, or paused",
+      "output": "implementation-candidate",
+      "retirement": "background automation is removed",
+      "queue": "implementation",
+      "skipWhenFull": true
+    }
+  }
+}

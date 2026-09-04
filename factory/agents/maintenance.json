@@ -1,0 +1,24 @@
+{
+  "label": "Maintenance",
+  "extends": "high",
+  "model": null,
+  "reasoningEffort": "high",
+  "toolset": "worker",
+  "executor": "orb",
+  "visibility": "workspace",
+  "timeoutMs": 3600000,
+  "context": [
+    "AGENTS.md",
+    "CONTEXT.md",
+    "SPEC.md",
+    "factory/invariants.md",
+    "assigned automation configuration"
+  ],
+  "authority": [
+    "inspect and test within assigned automation authority",
+    "report to chief of staff"
+  ],
+  "output": "Evidence-backed result matching the assigned automation output contract.",
+  "prompt": "Execute one assigned automation within its structured authority. Gather the named evidence, apply its condition and signal, and return only actionable results. The chief of staff owns GitHub issues and implementation work.",
+  "attemptLimit": 2
+}

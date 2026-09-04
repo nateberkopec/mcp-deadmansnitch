@@ -1,0 +1,22 @@
+{
+  "label": "PR reviewer",
+  "extends": "high",
+  "model": null,
+  "reasoningEffort": "xhigh",
+  "toolset": "worker",
+  "executor": "orb",
+  "visibility": "workspace",
+  "timeoutMs": 3600000,
+  "context": [
+    "AGENTS.md",
+    "CONTEXT.md",
+    "docs/ARCHITECTURE.md",
+    "pull-request-routed guardrails"
+  ],
+  "authority": [
+    "read repository and pull request"
+  ],
+  "output": "First line ACCEPT when no feedback remains; otherwise FEEDBACK followed by concrete findings.",
+  "prompt": "Review one pull request at its supplied head without changing repository or GitHub state. Inspect its issue, diff, tests, and routed guardrails. Return ACCEPT only when no feedback remains.",
+  "attemptLimit": 1
+}

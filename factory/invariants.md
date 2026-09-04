@@ -1,6 +1,6 @@
 # Invariant registry
 
-Factory-owned index. Implementing agents use routed guardrails; rationale and future design live in `docs/PLAN.md`. The factory improver audits this file. Mark an invariant Enforced only with passing deterministic proof.
+Factory-owned index. Implementing agents use routed guardrails; product requirements live in `SPEC.md` and sequencing in `factory/roadmap.md`. The factory improver audits this file. Mark an invariant Enforced only with passing deterministic proof.
 
 **Enforced** blocks violations. **Partial** has incomplete checks. **Guarded** relies on review. **Planned** awaits implementation.
 
@@ -57,7 +57,7 @@ Factory-owned index. Implementing agents use routed guardrails; rationale and fu
 
 | ID | Invariant | Proof | Status |
 |---|---|---|---|
-| INV-040 | Only twin differential runs use the factory-owned DMS key; all other tests use the twin. | project isolation, CI | Partial |
+| INV-040 | Only twin differential runs use the factory-owned DMS key; all other tests use the twin. | project isolation, factory-operation guardrail | Guarded |
 | INV-041 | Twin fidelity includes awkward statuses and legacy fields without shared code. | differential cases, holdouts | Planned |
 | INV-042 | Frozen time, seeded tokens, and reset state make scenarios repeatable. | repeatability tests | Planned |
 | INV-043 | Proof matches the changed layer; skipped proof is reported. | testing guardrail, review | Guarded |
@@ -69,16 +69,16 @@ Factory-owned index. Implementing agents use routed guardrails; rationale and fu
 
 | ID | Invariant | Proof | Status |
 |---|---|---|---|
-| INV-050 | Each issue has one mise-backed implementation worker; reviews and conflict resolution use fresh isolated orbs. | executor tests | Planned |
-| INV-051 | Exit codes, never models, decide deterministic gates. | gate tests | Partial |
+| INV-050 | Every role except chief of staff works in a mise-backed orb; each implementation issue has one worker; reviews and conflict resolution use fresh orbs. | agent config check, factory-operation guardrail, seal | Guarded |
+| INV-051 | Exit codes, never models, decide deterministic gates. | merge tool, CI, factory-operation guardrail | Guarded |
 | INV-052 | Main receives no DMS credentials; twin validation receives only the DMS test key; holdout validation receives only its repository token. | Amp project controls | Enforced |
-| INV-053 | Passing CI and a current-head reviewer with no further feedback permits merge; after activation, factory changes also need an owner-signed current head. | merge workflow, final activation gate | Planned |
+| INV-053 | Passing CI and a current-head reviewer with no further feedback permits merge; after activation, factory changes also need an owner-signed current head. | merge tool, factory-operation guardrail, seal | Guarded |
 | INV-054 | Publishing, destructive, paid-orb, and account actions require authority. | agent policy, authority controls | Guarded |
-| INV-055 | Transcript analysis stores only aggregate sanitized evidence. | runbook, review, gitleaks | Guarded |
-| INV-056 | Durable knowledge lives in repository docs. | operating-loop review | Guarded |
-| INV-057 | A worker gets five attempts; exhaustion halts; later attempts read prior mistakes. | controller tests | Planned |
-| INV-058 | The chief creates issues only when capacity exists; GitHub state survives interruption; changed heads repeat CI and review. | recovery tests | Planned |
-| INV-059 | Loops follow runbooks, report status, never self-merge, and recover after failure. | loop-health checks | Planned |
-| INV-060 | Explicitly authorized release PRs create tags; cargo-dist builds tested tags. | release workflows | Planned |
-| INV-061 | Actions use least privilege and immutable SHAs; crate publishing uses OIDC. | workflow policy | Partial |
-| INV-062 | Releases cover four targets and carry provenance. | cargo-dist workflow | Planned |
+| INV-055 | Transcript analysis stores only aggregate sanitized evidence. | agent definition, review, gitleaks | Guarded |
+| INV-056 | Normative knowledge lives in the repository; GitHub holds workflow state. | agent contexts, review | Guarded |
+| INV-057 | A worker gets five attempts; exhaustion halts; later attempts read prior mistakes. | serialized attempt controller, factory-operation guardrail | Guarded |
+| INV-058 | The chief creates issues only when capacity exists; GitHub state survives interruption; changed heads repeat CI and review. | serialized controller, factory-operation guardrail | Guarded |
+| INV-059 | Automations follow code-owned configuration, report to the chief, honor backpressure, and recover after failure. | automation config, hourly dispatcher, factory-operation guardrail | Guarded |
+| INV-060 | Explicitly authorized release PRs create tags; cargo-dist builds tested tags. | release workflows, factory-operation guardrail | Planned |
+| INV-061 | Actions use least privilege and immutable SHAs; crate publishing uses OIDC. | workflow policy, review | Partial |
+| INV-062 | Releases cover four targets and carry provenance. | cargo-dist configuration, review | Planned |

@@ -37,4 +37,4 @@ for (const [name, queue] of Object.entries(queues)) {
 const agentGuideWords = readFileSync("AGENTS.md", "utf8").trim().split(/\s+/).length;
 if (agentGuideWords > 100) throw new Error("AGENTS.md exceeds 100 words");
 console.log("Factory configuration checks passed.");
-execFileSync(process.execPath, ["--test", "--test-timeout=10000", "factory/qualification.test.mjs"], { stdio: "inherit" });
+execFileSync(process.execPath, ["--test", "--test-timeout=10000", "factory/qualification.test.mjs", "factory/automations/due.test.mjs"], { stdio: "inherit" });

@@ -1,0 +1,28 @@
+amends "package://github.com/jdx/hk/releases/download/v1.56.1/hk@1.56.1#/Config.pkl"
+
+local checks = new Mapping<String, Step> {
+    ["lint"] {
+        check = "mise run lint"
+    }
+    ["secrets"] {
+        check = "mise run lint:secrets"
+    }
+    ["test-fast"] {
+        check = "mise run test:fast"
+    }
+}
+
+hooks {
+    ["pre-commit"] {
+        stash = "git"
+        steps = checks
+    }
+    ["commit-msg"] {
+        steps {
+            ["conventional-commit"] {
+                check = "fish bin/check-commit-msg {{commit_msg_file}}"
+            }
+        }
+    }
+    ["check"] { steps = checks }
+}

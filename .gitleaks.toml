@@ -1,0 +1,8 @@
+title = "mcp-deadmansnitch secret scanning"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "The local mise-loaded environment file is intentionally plaintext and ignored by git"
+paths = ['''^\.env$''']

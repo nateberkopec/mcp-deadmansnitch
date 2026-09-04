@@ -1,0 +1,13 @@
+{
+  "name": "mcp-deadmansnitch-factory",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@ampcode/plugin": "0.0.0-20260902001824-gcbd038f",
+    "@types/node": "24.3.0",
+    "typescript": "5.9.2"
+  }
+}

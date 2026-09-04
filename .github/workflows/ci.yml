@@ -1,0 +1,45 @@
+name: CI
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  rust:
+    strategy:
+      matrix:
+        toolchain: ["1.88.0", stable]
+    runs-on: ubuntu-latest
+    env:
+      RUSTFLAGS: -Dwarnings
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Install Rust
+        run: rustup toolchain install ${{ matrix.toolchain }} --profile minimal --component rustfmt,clippy
+      - name: Check formatting
+        run: cargo +${{ matrix.toolchain }} fmt --check
+      - name: Clippy
+        run: cargo +${{ matrix.toolchain }} clippy --workspace --all-targets -- -D warnings
+      - name: Install nextest
+        run: cargo +${{ matrix.toolchain }} install cargo-nextest --version 0.9.100 --locked
+      - name: Test
+        run: cargo +${{ matrix.toolchain }} nextest run --workspace
+      - name: Documentation
+        env:
+          RUSTDOCFLAGS: -Dwarnings
+        run: cargo +${{ matrix.toolchain }} doc --workspace --no-deps
+  policy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - run: rustup toolchain install 1.88.0 --profile minimal
+      - run: cargo install cargo-deny --version 0.20.2 --locked
+      - run: cargo deny check
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - run: rustup toolchain install 1.88.0 --profile minimal --component llvm-tools-preview
+      - run: cargo install cargo-llvm-cov --version 0.6.16 --locked
+      - run: cargo llvm-cov --workspace --fail-under-lines 0

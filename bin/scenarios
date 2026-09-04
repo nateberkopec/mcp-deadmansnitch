@@ -1,0 +1,4 @@
+#!/usr/bin/env fish
+echo '+ amp scenario runner (available after Phase 5)' >&2
+echo 'Scenario execution is not implemented in the Phase 0 empty workspace.' >&2
+exit 2

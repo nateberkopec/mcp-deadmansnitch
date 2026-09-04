@@ -1,0 +1,7 @@
+[changelog]
+header = "# Changelog\n"
+body = "{% for group, commits in commits | group_by(attribute=\"group\") %}\n### {{ group }}\n{% for commit in commits %}- {{ commit.message }}\n{% endfor %}{% endfor %}"
+
+[git]
+conventional_commits = true
+filter_unconventional = true

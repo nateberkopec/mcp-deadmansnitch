@@ -1,0 +1,12 @@
+[workspace]
+changelog_config = "cliff.toml"
+git_tag_name = "mcp-deadmansnitch-v{{ version }}"
+semver_check = true
+
+[[package]]
+name = "deadmanssnitch-twin"
+release = false
+
+[[package]]
+name = "deadmanssnitch-conformance"
+release = false

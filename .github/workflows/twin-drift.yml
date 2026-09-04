@@ -1,0 +1,11 @@
+name: Twin drift
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  phase-status:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - run: echo 'Live differential execution begins after Phase 1 and requires explicit secret authorization.'

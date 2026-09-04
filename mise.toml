@@ -1,0 +1,39 @@
+min_version = "2026.8.14"
+
+[tools]
+rust = "1.88.0"
+hk = "1.56.1"
+gitleaks = "8.30.1"
+node = "24.7.0"
+"cargo:cargo-nextest" = "0.9.100"
+"cargo:cargo-deny" = "0.20.2"
+"cargo:cargo-llvm-cov" = "0.6.16"
+"cargo:cargo-semver-checks" = "0.42.0"
+"cargo:cargo-mutants" = "25.3.1"
+
+[env]
+_.file = ".env"
+
+[tasks.test]
+description = "Run the complete local Rust test suite"
+run = "cargo nextest run --workspace"
+
+[tasks."test:fast"]
+description = "Run unit and in-process library tests"
+run = "cargo test --workspace --lib"
+
+[tasks.lint]
+description = "Run formatting, Clippy, and dependency policy checks"
+run = "cargo fmt --check && cargo clippy --workspace --all-targets -- -D warnings && cargo deny check"
+
+[tasks."lint:secrets"]
+description = "Scan tracked and untracked project files for secrets"
+run = "gitleaks dir --config .gitleaks.toml --redact --no-banner ."
+
+[tasks.build]
+description = "Build the release workspace"
+run = "cargo build --workspace --release"
+
+[tasks.serve]
+description = "Start the twin and the HTTP MCP server"
+run = "fish bin/serve"

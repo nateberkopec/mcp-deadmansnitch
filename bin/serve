@@ -1,0 +1,11 @@
+#!/usr/bin/env fish
+set twin_log (mktemp)
+echo '+ cargo run -p deadmanssnitch-twin' >&2
+cargo run -p deadmanssnitch-twin >$twin_log 2>&1 &
+set twin_pid $last_pid
+function cleanup --on-event fish_exit
+    kill $twin_pid 2>/dev/null
+    rm -f $twin_log
+end
+echo '+ cargo run -p mcp-deadmanssnitch -- --transport http' >&2
+DEADMANSNITCH_API_URL=http://127.0.0.1:3001/v1 cargo run -p mcp-deadmanssnitch -- --transport http

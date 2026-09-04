@@ -1,0 +1,7 @@
+[dist]
+cargo-dist-version = "0.29.0"
+ci = "github"
+installers = ["shell"]
+targets = ["x86_64-unknown-linux-musl", "aarch64-unknown-linux-musl", "x86_64-apple-darwin", "aarch64-apple-darwin"]
+install-updater = false
+allow-dirty = ["ci"]

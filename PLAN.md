@@ -64,10 +64,10 @@ that this section does not list.
 | Factory plane | The factory plane is Amp. Orbs are the only execution environment for implementation, review, judging, QA, and the background loops. Reuse nothing from sfactory |
 | What runs locally | Two things run locally. The first is the workflow orchestrator, which is the Amp plugin in this repo. The second is one chief-of-staff agent (Puck or an equivalent) that reports, routes questions, and launches work. No one writes or tests code on the local machine |
 | Isolation | Use one fresh orb for each attempt, each review, each judgment, and each loop run. `.agents/setup` installs the mise toolchain, warms the cargo cache, and builds the twin. Amp makes a snapshot of the orb for reuse. `.agents/resume` checks the toolchain again |
-| Secrets in orbs | Use Amp's OIDC workload identity. Only the drift loop and the QA explorer receive the DMS key |
+| Secrets in orbs | Use Amp OIDC workload identity for services that support federation. DMS does not, so keep its static key as a secret in a dedicated Amp validation project used only by the drift loop and QA explorer; implementation orbs use the main project and never receive it |
 | Workflows | The plugin is TypeScript and is checked in at `.amp/plugins/factory/`. Phases 1 through 5 are pipeline functions. The gates are `amp.$` shell steps. The exit code decides whether the pipeline continues, and the model never runs a gate. Attempt budgets, parallel attempts, and human gates are code. Each attempt pushes a branch. The plugin records the workflow state in the repo, because Amp has no checkpoint and no resume |
 | Model and provider | Deferred. The plugin exposes model and effort as parameters of each step. This stage makes no choice |
-| Attempt budget | Allow five attempts for each gate, each in a fresh orb, from the last commit that passed. Then halt and write a report. The report gives what the attempts tried, what failed, and the reviewer's last verdict. Attempt three and each later attempt must read the MISTAKES.md entries from the earlier attempts |
+| Attempt budget | Allow five attempts for each gate, each in a fresh orb, from the last commit that passed. Then halt and write a report. The report gives what the attempts tried, what failed, and the reviewer's last verdict. Attempt three and each later attempt must read the docs/MISTAKES.md entries from the earlier attempts |
 | Parallel attempts | For the twin state machine and for the HTTP-plus-conformance gate, run three attempts in parallel orbs. A code step makes a table with one row for each attempt. The table gives the lines of code from `tokei`, the clippy cognitive complexity, the test count, the coverage, and the gate results. A reviewer agent in a fresh orb selects the winner and must cite the table. Keep the losing branches for one week, then delete them |
 | Human gates | Only a human merges these pull requests. Each change that expands the spec goes through one. Such changes include new scenarios, new holdouts, and new tool behavior |
 | Work queue | The work queue is GitHub issues. A human sets a label to mark an issue approved. The plugin's webhook launches an implementation thread on that label |
@@ -84,7 +84,7 @@ that this section does not list.
 | Task runner | Use nothing beyond cargo and mise. Add one fish wrapper for the scenario runner, which uses more than one process. The wrapper prints the commands that it runs |
 | Pre-commit test scope | `test:fast` runs the unit tests and the in-process tool tests. The conformance tests, the binary contract test, and the scenarios run in CI only |
 | Coverage | Enforce 100% coverage on `deadmanssnitch` and on the twin's state machine. Elsewhere, use a ratchet, so that the coverage never decreases. Run `cargo mutants` weekly as report-only |
-| Scenario driver | The driver is the Amp SDK with `executor: 'orb'` and an `mcpConfig` that points at the server. The server points at the twin. An acting agent uses the server. A judge agent reads the transcript and the twin state dump. The judge agent runs in a separate fresh orb and cannot reach the implementation threads |
+| Scenario driver | The driver is the Amp SDK with `executor: 'orb'`. Because Amp ignores per-run `mcpConfig` for orb execution, the validation project's MCP configuration points at the server, and the server points at the twin. An acting agent uses the server. A judge agent reads the transcript and the twin state dump. The judge agent runs in a separate fresh orb and cannot reach the implementation threads |
 
 ### Release and distribution
 
@@ -150,13 +150,13 @@ synthesizes the code. Tests prove the equivalence.
 constant." This project uses these moves, and each one produces an artifact:
 
 - AGENTS.md is the map. It states what the repo is, the operating loop, the golden-path workflows, and the links. `CLAUDE.md` is `@AGENTS.md` plus host notes.
-- ARCHITECTURE.md is a stable codemap. It gives the modules, the boundaries, the dependency direction, and the invariants. It holds no version literals.
+- docs/ARCHITECTURE.md is a stable codemap. It gives the modules, the boundaries, the dependency direction, and the invariants. It holds no version literals.
 - The guardrails are themed documents in `docs/guardrails/`. When a PR violates a guardrail, that same PR updates it.
 - "If it matters, it belongs in a verifier owned by the repo." Each recurring correction becomes a type, a lint, a test, or a document, in that order. Section 6 lists the verifiers.
 - Parse at the boundary. Make illegal states impossible to represent. Use a newtype for `Token`. Use closed enums for `Status` and `Interval`, each with an `Unknown` variant. Let no `serde_json::Value` pass the decode boundary.
 - Tool results are quiet on success. Their structure is bounded and stable. An error names the invariant that it violated and gives a recovery action. A mutation returns a receipt.
 - Match the proof to the claim. Section 7 maps each claim to its evidence.
-- MISTAKES.md, LEARNINGS.md, and DESIRES.md are telemetry for the harness builder. Nothing feeds them into a prompt automatically.
+- docs/MISTAKES.md, docs/LEARNINGS.md, and docs/DESIRES.md are telemetry for the harness builder. Nothing feeds them into a prompt automatically.
 - Each PR carries the prompt that produced it.
 - Continuous maintenance uses runbooks that the repo owns, and each runbook has a retirement condition. Section 9 lists the loops.
 
@@ -319,7 +319,7 @@ the tests do not sleep.
 - These are all bounded: the request timeout, the retry budget, the response size, the list size, and the text block size.
 - The server exits cleanly with exit code 0 on stdin EOF, on SIGTERM, and on SIGINT.
 - A full `cargo build` plus `cargo nextest run` takes less than one minute in an orb. `test:fast` takes less than ten seconds after the first compile. Phase 1 measures these times, and the project keeps them.
-- Supply chain: `deny.toml` checks the advisories, permits MIT and Apache-2.0 only, permits no duplicate versions, and permits known registries only. Dependabot runs as section 0 says. The actions are pinned by SHA. The default workflow permissions are read-only. Publishing uses OIDC trusted publishing.
+- Supply chain: `deny.toml` checks the advisories, permits MIT and Apache-2.0 plus the Unicode-3.0 data license required by rmcp's URL stack, and permits no duplicate versions except the required syn 2/syn 3 split. It permits known registries only. Dependabot runs as section 0 says. The actions are pinned by SHA. The default workflow permissions are read-only. Publishing uses OIDC trusted publishing.
 - The compatibility surfaces, from the strictest to the least strict, are the tool names and argument schemas, the `structuredContent` shapes, the CLI flags and env vars, and the MCP spec revisions served. A change to a tool name or an argument schema is a semver-major change. The `deadmanssnitch` library has its own semver gate.
 
 ## 4. Digital twin design (`crates/deadmanssnitch-twin`)
@@ -404,7 +404,7 @@ synthesizes the code.
 ```
 AGENTS.md                 map: what, why, operating loop, golden paths, links
 CLAUDE.md                 @AGENTS.md shim
-ARCHITECTURE.md           codemap, boundaries, invariants (no version literals)
+docs/ARCHITECTURE.md           codemap, boundaries, invariants (no version literals)
 CONTRIBUTING.md           setup, direct cargo commands, proof expectations
 PLAN.md                   this file
 CHANGELOG.md              maintained by release-plz
@@ -426,7 +426,9 @@ docs/reference/           dms-api-v1.md, mcp-2026-07-28.md
 docs/guardrails/          rust-code, testing-and-proof, tool-contract-stability, errors-and-retries, dependencies, twin-fidelity
 docs/automations/         one runbook per loop (section 9)
 docs/donors.md
-MISTAKES.md LEARNINGS.md DESIRES.md   agent telemetry, never prompt-injected
+docs/factory-improvements.md    sanitized prioritized backlog for the daily factory-improvement loop
+docs/phase-0-report.md           local gate results and account-side/manual work
+docs/MISTAKES.md docs/LEARNINGS.md docs/DESIRES.md   agent telemetry, never prompt-injected
 ```
 
 The holdout scenarios live in the private repo, not here.
@@ -456,11 +458,11 @@ The holdout scenarios live in the private repo, not here.
 ### 6.3 AGENTS.md operating loop (draft)
 
 1. Classify the change: tool contract, client or wire, twin fidelity, transport, dependencies or CI, or docs only.
-2. Read the routed guardrail for that class, and read `ARCHITECTURE.md`.
+2. Read the routed guardrail for that class, and read `docs/ARCHITECTURE.md`.
 3. Keep the diff narrow. Do not mix behavior, dependency posture, release metadata, and formatting.
 4. For a behavior change, add a test that fails before the fix. For a twin change, add a differential-suite case.
 5. Run the proof that matches the class. `CONTRIBUTING.md` lists the commands. If you skip a relevant check, say so in the PR.
-6. Update each document that makes a claim about what changed: the README tools table, `ARCHITECTURE.md`, the guardrails, and the CHANGELOG entry, which comes from the commit message.
+6. Update each document that makes a claim about what changed: the README tools table, `docs/ARCHITECTURE.md`, the guardrails, and the CHANGELOG entry, which comes from the commit message.
 7. Record the durable lessons in the repo, not in the transcript.
 
 ## 7. Proof: which evidence supports which claim
@@ -485,8 +487,8 @@ says this, then these tool calls happened and the twin ends in this state.
 Those are hard assertions, and the runner checks them mechanically. The judge
 then finds these other things, which are soft assertions. The runner
 (`bin/scenarios`) starts the twin. It then starts the server pointed at the
-twin. It then calls the Amp SDK with an orb executor and an `mcpConfig` for the
-server. The acting agent's transcript and a twin state dump go to a judge agent
+twin. It then calls the Amp SDK with an orb executor in the validation project,
+whose project-level MCP configuration points at the server. The acting agent's transcript and a twin state dump go to a judge agent
 in a separate fresh orb. The scenarios are seeded from the old repo's two slash
 commands and from the Python test suite. Examples are: set up a daily backup
 monitor; find why a snitch is failing; pause everything tagged `staging` for
@@ -513,9 +515,9 @@ launched from here.
 - De-fork: leave the fork network in the GitHub repository settings. Delete all local and remote tags. Remove the `upstream` remote.
 - Remove the Python remnants: `.github/workflows/*` (all six), `.pre-commit-config.yaml`, `.python-version`, `.envrc`, `.claude/settings.json`, `.claude/commands/*`, the caches, `.venv`, and `.coverage`. Rewrite `.gitignore` and `.env.example` for Rust and mise.
 - Fix the variable name in the local `.env` to `DEADMANSNITCH_API_KEY`.
-- Write `LICENSE` (both lines), `AGENTS.md`, `CLAUDE.md`, `ARCHITECTURE.md`, `CONTRIBUTING.md`, `docs/guardrails/*`, `docs/donors.md`, `docs/automations/*`, `deny.toml`, `mise.toml`, `hk.pkl`, `.gitleaks.toml`, the workspace `Cargo.toml` with the lint block and four empty crates, `release-plz.toml`, `dist-workspace.toml`, and the CI skeleton (fmt, clippy, nextest, deny, MSRV, doc, coverage).
-- Write `.agents/setup` and `.agents/resume`. Write the plugin skeleton with one trivial gated pipeline that runs `mise run lint` in an orb and reports.
-- Spikes that must pass before Phase 1: a gated pipeline in an orb blocks on a failing `mise run` step and proceeds on a passing one; an automation wrapped in a runbook survives a deliberately failing run without staying paused, or the webhook path is chosen instead; the SDK's `mcpConfig` works inside an orb; an orb can reach the live DMS API and receives the key through Amp's secret delivery.
+- Write `LICENSE` (both lines), `AGENTS.md`, `CLAUDE.md`, `docs/ARCHITECTURE.md`, `CONTRIBUTING.md`, `docs/guardrails/*`, `docs/donors.md`, `docs/automations/*`, `deny.toml`, `mise.toml`, `hk.pkl`, `.gitleaks.toml`, the workspace `Cargo.toml` with the lint block and four empty crates, `release-plz.toml`, `dist-workspace.toml`, and the CI skeleton (fmt, clippy, nextest, deny, MSRV, doc, coverage).
+- Write `.agents/setup` and `.agents/resume`. Write the plugin skeleton with one trivial gated pipeline that runs `mise run lint` in an orb and reports. Add the daily factory-improvement loop and its prioritized backlog at `docs/factory-improvements.md`; transcript analysis records process-level evidence and never copies secrets or sensitive transcript content into the backlog.
+- Spikes that must pass before Phase 1: a gated pipeline in an orb blocks on a failing `mise run` step and proceeds on a passing one; an automation wrapped in a runbook survives a deliberately failing run without staying paused, or the webhook path is chosen instead; the validation project's MCP configuration is available inside an orb; an orb in the dedicated validation project can reach the live DMS API and receives its static DMS key through Amp project-secret delivery.
 - Create the private holdout repo and the fine-grained token for it.
 - Add `DEADMANSNITCH_API_KEY` as a repository secret for the drift job.
 - Run `check-dev-env.fish` and clear its worklist.
@@ -575,9 +577,10 @@ opens a PR, and no loop merges one.
 | Dependency sweep | Monthly | PR | Re-pins `mise.toml` and the Cargo deps, and respects the cooldown. Runs the full matrix. Opens a PR |
 | Release | On release PR | PR review | The human reviews the release PR and then merges it. The loop prepares the review |
 | Security red team | Weekly | Report-only | Red-teams the repo. It must prove impact or exploitability before it files. Its surface is the HTTP auth, the Origin handling, prompt injection through upstream text, secret leakage, and SSRF through the URL override flags |
-| Doc drift | Weekly | PR | Checks that every path and symbol cited in `ARCHITECTURE.md` and the guardrails still resolves, and that the README claims match the generated tables |
+| Doc drift | Weekly | PR | Checks that every path and symbol cited in `docs/ARCHITECTURE.md` and the guardrails still resolves, and that the README claims match the generated tables |
 | Coverage ratchet | Monthly | PR | Proposes a higher floor for any crate that has stayed above its floor for a month |
 | Flake hunter | Weekly | Issue | Reruns the suite N times. It files anything nondeterministic as an infrastructure bug |
 | Refactor | Continuous | PR | Has one mission: fewer lines of code. A person closes its PR unread unless the tests stay green, the coverage does not drop, and the line count drops |
 | QA explorer | Continuous | Issue plus PR | Acts as a user against the twin, with random seeds and faults, in a fresh orb. Files an issue and a PR that adds a Given, When, Then scenario. Triage removes duplicates and assigns a severity. A human merges or closes |
+| Factory improvement | Daily | PR | Reads the implementing agents' session transcripts, measures token and cost efficiency, repeated tool work and failures, and other process friction, then maintains the prioritized `docs/factory-improvements.md` backlog. It records sanitized process evidence only and never copies secrets or sensitive transcript content into the repo |
 | Loop health | Daily | Issue | Checks that no automation is paused and that every loop wrote its status line. Files an issue if either is false |

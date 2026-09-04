@@ -1,0 +1,28 @@
+[graph]
+targets = [
+  "x86_64-unknown-linux-musl",
+  "aarch64-unknown-linux-musl",
+  "x86_64-apple-darwin",
+  "aarch64-apple-darwin",
+]
+
+[advisories]
+version = 2
+yanked = "deny"
+
+[licenses]
+version = 2
+confidence-threshold = 0.93
+# rmcp 3.2.0's URL/IDNA stack uses Unicode's OSI-approved data license.
+allow = ["MIT", "Apache-2.0", "Unicode-3.0"]
+
+[bans]
+multiple-versions = "deny"
+wildcards = "deny"
+# rmcp 3.2.0 currently requires proc-macro consumers on both syn major lines.
+skip = [{ name = "syn", version = "2.0.119", reason = "required alongside syn 3 by rmcp 3.2.0's dependency graph" }]
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]

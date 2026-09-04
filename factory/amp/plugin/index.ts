@@ -9,6 +9,7 @@ import type {
   PluginAPI,
   PluginToolContext,
   ThreadID,
+  ThreadMessage,
 } from "@ampcode/plugin";
 
 export const description =
@@ -845,8 +846,14 @@ export default async function factoryPlugin(amp: PluginAPI): Promise<void> {
       if (existing !== undefined) {
         const thread = amp.threads.get(existing.threadID);
         const prompt = chiefStartupPrompt(existing.capacity);
-        const messages = JSON.stringify(await thread.messages({ full: true, from: "start", limit: 20 }));
-        if (!messages.includes(prompt)) {
+        const exported = await amp.$`amp threads export ${existing.threadID}`;
+        if (exported.exitCode !== 0) throw new Error(exported.stderr);
+        const { messages } = JSON.parse(exported.stdout) as { messages: ThreadMessage[] };
+        const prompted = messages.some((message) =>
+          message.role === "user" &&
+          message.content.some((block) => block.type === "text" && block.text === prompt),
+        );
+        if (!prompted) {
           await thread.appendUserMessage({ type: "user-message", content: prompt });
         }
         return JSON.stringify({

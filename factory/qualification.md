@@ -14,7 +14,7 @@ These checks exercise real orchestration code but do not prove Amp delivery timi
 
 ## Live evidence
 
-- Chief `T-01a06e11-ff37-7193-bd63-40f47e1e8dee` owns control issue #4 at capacity 1. Startup reported readiness and waited. The reservation from an earlier failed launch was reused.
+- Chief `T-01a06e11-ff37-7193-bd63-40f47e1e8dee` owns control issue #4 at capacity 1. Startup reported readiness and waited. The reservation from an earlier failed launch was reused. Local recovery initially failed because the plugin transcript API only supports connected threads; CLI export now checks the startup message. The regression test reproduced the failure, and a live retry returned the same chief, capacity 1, and `resumed: true`.
 - At `e4e5bf2`, explicit setup passed in 24.773 seconds, resume passed twice in 1.027 and 1.045 seconds, and direct environment checks passed in 6.146 seconds. Both line-count tasks passed, the checkout stayed clean, and CI passed.
 - Main's environment membership checks show both DMS and holdout variables absent, including under mise. A model initially misread a redaction marker as presence; the explicit boolean recheck corrected that finding.
 - Read-only Amp inventory on 2026-09-05 found no main-project, personal, or workspace secrets. Twin-validation lists only `DEADMANSNITCH_API_KEY`; the private holdout project lists only `MCP_DEADMANSNITCH_HOLDOUT_TOKEN`. No values were inspected. Fresh runtime checks in those projects remain outstanding.

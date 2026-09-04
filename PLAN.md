@@ -81,7 +81,7 @@ that this section does not list.
 | MCP SDK | Pin `rmcp` to `=3.2.x`. Enable the features `server, macros, transport-io, schemars, elicitation, transport-streamable-http-server` |
 | Worker | The worker is Amp's agent. Hold it constant, as Lopopolo's fixed-worker thesis says. AGENTS.md is the source of truth, and Amp reads it natively. `CLAUDE.md` is an `@AGENTS.md` shim for a person who runs Claude Code locally. Use no skills. The routed docs hold everything that a skill would teach. Requalify the harness each time the worker changes |
 | Code comments | Code comments are prohibited in every source format. Shebangs are executable metadata, not comments. Put rationale in names, types, tests, attributes, or routed documentation, and enforce the rule with the repo-owned comment linter |
-| Dev-env standard | Applied. `mise.toml` supplies the tasks `test`, `test:fast`, `lint` (fan-out, including the comment linter), `lint:secrets`, `build`, and `serve`. Each task is a one-line wrapper around the exact `cargo` command that `CONTRIBUTING.md` documents. The `hk.pkl` pre-commit hook runs lint, secrets, and `test:fast`. A `commit-msg` step enforces conventional commits. `serve` starts the twin and the server in HTTP mode. `check-dev-env.fish` runs at the end of Phase 0, and its failures are the worklist |
+| Dev-env standard | Applied. `mise.toml` supplies the tasks `test`, `test:fast`, `lint` (fan-out, including the comment linter), `lint:secrets`, `build`, and `serve`. Each task is a one-line wrapper around the exact `cargo` command that `CONTRIBUTING.md` documents. The `hk.pkl` pre-commit hook runs lint, secrets, and `test:fast`. A `commit-msg` step enforces conventional commits. `serve` starts the twin and the server in HTTP mode. `bin/check-dev-env` verifies the repository development environment, and its failures are the worklist |
 | Task runner | Use nothing beyond cargo and mise for task orchestration. Keep small fish scripts for cross-process workflows and repo-owned policy checks, including scenarios, commit messages, and the no-comments invariant. Wrappers print the commands that they run |
 | Pre-commit test scope | `test:fast` runs the unit tests and the in-process tool tests. The conformance tests, the binary contract test, and the scenarios run in CI only |
 | Coverage | Enforce 100% coverage on `deadmanssnitch` and on the twin's state machine. Elsewhere, use a ratchet, so that the coverage never decreases. Run `cargo mutants` weekly as report-only |
@@ -141,7 +141,7 @@ drift. Section 4 gives the design.
 
 "Move working patterns between codebases by pointing agents at concrete
 exemplars." Section 5 is the donor list, and it names the specific gene to
-extract from each donor. The list is also persisted as `docs/donors.md`. Each
+extract from each donor. The list is also persisted as `docs/reference/donors.md`. Each
 agent reads the donor, writes the invariants into a checklist, and then
 synthesizes the code. Tests prove the equivalence.
 
@@ -151,7 +151,7 @@ synthesizes the code. Tests prove the equivalence.
 constant." This project uses these moves, and each one produces an artifact:
 
 - AGENTS.md is the map. It states what the repo is, the operating loop, the golden-path workflows, and the links. `CLAUDE.md` is `@AGENTS.md` plus host notes.
-- docs/ARCHITECTURE.md is a stable codemap. It gives the modules, the boundaries, the dependency direction, and the invariants. It holds no version literals.
+- `docs/ARCHITECTURE.md` is a stable codemap. It gives the modules, boundaries, and dependency direction and holds no version literals. `docs/factory/invariants.md` is the factory-owned registry of invariants and their enforcement status; implementing agents use routed guardrails instead.
 - The guardrails are themed documents in `docs/guardrails/`. When a PR violates a guardrail, that same PR updates it.
 - "If it matters, it belongs in a verifier owned by the repo." Each recurring correction becomes a type, a lint, a test, or a document, in that order. Section 6 lists the verifiers.
 - Parse at the boundary. Make illegal states impossible to represent. Use a newtype for `Token`. Use closed enums for `Status` and `Interval`, each with an `Unknown` variant. Let no `serde_json::Value` pass the decode boundary.
@@ -379,7 +379,7 @@ master.
 
 ## 5. Gene transfusion: donors and the genes to take
 
-This section is also persisted as `docs/donors.md`. For each donor, the agent
+This section is also persisted as `docs/reference/donors.md`. For each donor, the agent
 reads the cited files, writes the invariants into a checklist, and then
 synthesizes the code.
 
@@ -406,7 +406,9 @@ synthesizes the code.
 ```
 AGENTS.md                 map: what, why, operating loop, golden paths, links
 CLAUDE.md                 @AGENTS.md shim
-docs/ARCHITECTURE.md           codemap, boundaries, invariants (no version literals)
+docs/ARCHITECTURE.md           codemap and boundaries (no version literals)
+docs/factory/readme.md        factory structure and operating model
+docs/factory/invariants.md     factory-owned invariant and enforcement registry
 CONTRIBUTING.md           setup, direct cargo commands, proof expectations
 PLAN.md                   this file
 CHANGELOG.md              maintained by release-plz
@@ -427,9 +429,13 @@ bin/scenarios             fish wrapper for the scenario runner; prints what it r
 docs/reference/           dms-api-v1.md, mcp-2026-07-28.md
 docs/guardrails/          rust-code, testing-and-proof, tool-contract-stability, errors-and-retries, dependencies, twin-fidelity
 docs/automations/         one runbook per loop (section 9)
-docs/donors.md
-docs/factory-improvements.md    sanitized prioritized backlog for the daily factory-improvement loop
-docs/phase-0-report.md           local gate results and account-side/manual work
+docs/reference/donors.md
+docs/automations/factory-improvement/
+  runbook.md                     daily factory-improvement loop instructions
+  backlog.md                     sanitized prioritized backlog owned by that loop
+docs/history/                    dated, non-authoritative records
+  phase-0-plan.md                completed Phase 0 definition
+  phase-0-report.md              Phase 0 gate and account-side snapshot
 docs/MISTAKES.md docs/LEARNINGS.md docs/DESIRES.md   agent telemetry, never prompt-injected
 ```
 
@@ -505,26 +511,7 @@ holdouts across three consecutive runs.
 
 ## 8. Phases and gates
 
-Each phase ends at a gate that a machine can check. Every phase runs in orbs,
-and the workflow plugin drives it. Phase 0 holds the only local steps, and it
-lists them.
-
-### Phase 0: complete the intent
-
-Do this locally, once: create the Amp workspace, install the plugin, and start
-the chief-of-staff agent. Everything else in this phase runs in an orb that is
-launched from here.
-
-- De-fork: leave the fork network in the GitHub repository settings. Delete all local and remote tags. Remove the `upstream` remote.
-- Remove the Python remnants: `.github/workflows/*` (all six), `.pre-commit-config.yaml`, `.python-version`, `.envrc`, `.claude/settings.json`, `.claude/commands/*`, the caches, `.venv`, and `.coverage`. Rewrite `.gitignore` and `.env.example` for Rust and mise.
-- Fix the variable name in the local `.env` to `DEADMANSNITCH_API_KEY`.
-- Write `LICENSE` (both lines), `AGENTS.md`, `CLAUDE.md`, `docs/ARCHITECTURE.md`, `CONTRIBUTING.md`, `docs/guardrails/*`, `docs/donors.md`, `docs/automations/*`, `deny.toml`, `mise.toml`, `hk.pkl`, `.gitleaks.toml`, the workspace `Cargo.toml` with the lint block and four empty crates, `release-plz.toml`, `dist-workspace.toml`, and the CI skeleton (fmt, clippy, nextest, deny, MSRV, doc, coverage).
-- Write `.agents/setup` and `.agents/resume`. Write the plugin skeleton with one trivial gated pipeline that runs `mise run lint` in an orb and reports. Add the daily factory-improvement loop and its prioritized backlog at `docs/factory-improvements.md`; transcript analysis records process-level evidence and never copies secrets or sensitive transcript content into the backlog.
-- Spikes that must pass before Phase 1: a gated pipeline in an orb blocks on a failing `mise run` step and proceeds on a passing one; an automation wrapped in a runbook survives a deliberately failing run without staying paused, or the webhook path is chosen instead; the validation project's MCP configuration is available inside an orb; an orb in the dedicated validation project can reach the live DMS API and receives its static DMS key through Amp project-secret delivery.
-- Create the private holdout repo and the fine-grained token for it.
-- Add `DEADMANSNITCH_API_KEY` as a repository secret for the drift job.
-- Run `check-dev-env.fish` and clear its worklist.
-- Gate: CI is green on an empty workspace. Every document in section 6.1 exists. The dev-env checker passes. The run report records all four spikes as passing. A fresh agent that gets only `AGENTS.md` can state the operating loop and find the API reference.
+Each active phase ends at a gate that a machine can check and is driven by the workflow plugin in orbs. Phase 0 is complete; its definition and evidence are preserved in [`docs/history/`](docs/history/).
 
 ### Phase 1: twin and differential suite
 
@@ -585,5 +572,5 @@ opens a PR, and no loop merges one.
 | Flake hunter | Weekly | Issue | Reruns the suite N times. It files anything nondeterministic as an infrastructure bug |
 | Refactor | Continuous | PR | Has one mission: fewer lines of code. A person closes its PR unread unless the tests stay green, the coverage does not drop, and the line count drops |
 | QA explorer | Continuous | Issue plus PR | Acts as a user against the twin, with random seeds and faults, in a fresh orb. Files an issue and a PR that adds a Given, When, Then scenario. Triage removes duplicates and assigns a severity. A human merges or closes |
-| Factory improvement | Daily | PR | Reads the implementing agents' session transcripts, measures token and cost efficiency, repeated tool work and failures, and other process friction, then maintains the prioritized `docs/factory-improvements.md` backlog. It records sanitized process evidence only and never copies secrets or sensitive transcript content into the repo |
+| Factory improvement | Daily | PR | Investigates invariant violations and ways to move Planned, Guarded, or Partial invariants to Enforced; reads implementing-agent session transcripts; measures token and cost efficiency, repeated tool work and failures, and other process friction; then maintains `docs/automations/factory-improvement/backlog.md`. It records sanitized process evidence only and never copies secrets or sensitive transcript content into the repo |
 | Loop health | Daily | Issue | Checks that no automation is paused and that every loop wrote its status line. Files an issue if either is false |

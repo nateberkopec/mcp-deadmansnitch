@@ -1,6 +1,6 @@
 # Donor implementations
 
-This section is also persisted as `docs/donors.md`. For each donor, the agent
+For each donor, the agent
 reads the cited files, writes the invariants into a checklist, and then
 synthesizes the code.
 

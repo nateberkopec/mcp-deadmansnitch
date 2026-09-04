@@ -16,12 +16,12 @@ export const automationRunbooks = {
   flakeHunter: "docs/automations/flake-hunter.md",
   refactor: "docs/automations/refactor.md",
   qaExplorer: "docs/automations/qa-explorer.md",
-  factoryImprovement: "docs/automations/factory-improvement.md",
+  factoryImprovement: "docs/automations/factory-improvement/runbook.md",
   loopHealth: "docs/automations/loop-health.md",
 } as const;
 
 export const factoryImprovementPrompt =
-  "Read docs/automations/factory-improvement.md and analyze all implementing-agent sessions since the recorded boundary. Update docs/factory-improvements.md with aggregate, redacted process evidence only; never copy secrets or sensitive transcript content.";
+  "Read docs/factory/invariants.md and docs/automations/factory-improvement/runbook.md. Investigate invariant violations and practical deterministic enforcement for Planned, Guarded, and Partial invariants, then analyze implementing-agent sessions since the recorded boundary. Update docs/automations/factory-improvement/backlog.md with invariant IDs and aggregate, redacted process evidence only; never copy secrets or sensitive transcript content.";
 
 export interface GateReport {
   gate: string;

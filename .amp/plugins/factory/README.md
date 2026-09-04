@@ -1,18 +1,9 @@
 # Factory plugin
 
-This project plugin registers `factory: Run Phase 0 lint gate` and the
-`factory_phase_zero_gate_spike` diagnostic tool. Run them from an Amp orb
-thread. The plugin executes gates through `amp.$`, and exit codes alone decide
-whether the pipeline blocks or proceeds. Both entry points refuse local
-execution so gates cannot accidentally run on the orchestrator machine.
+See `docs/factory/readme.md` for the system overview.
 
-`automationRunbooks` is the checked-in manifest for account-side loops,
-including the daily transcript-based factory-improvement loop. In an orb the
-plugin also registers a durable `factory-health` webhook; this is the recovery
-path because Amp pauses scheduled automations after a failed run. Webhook input
-is ignored except for Amp's event ID, and the fixed handler delegates to the
-loop-health runbook. Automations are created from their orb threads after
-reading the matching runbook.
+The factory is this repository's Amp control plane. It launches work in isolated orbs, runs deterministic `mise` gates, and routes recurring maintenance through checked-in runbooks. Its improvement loop investigates invariant violations and converts prose protections into deterministic enforcement. Agents propose changes; exit codes decide gates; humans merge changes that expand the specification.
 
-The remaining Amp workspace/project creation, schedules, webhook registration,
-secret configuration, and orb spikes require authenticated account-side setup.
+Current status: the Phase 0 foundation is verified. Orb setup, project and secret isolation, the lint gate, project-level MCP delivery, and the recovery webhook work. The plugin currently exposes the diagnostic gate and webhook status tools plus the automation runbook manifest. Phase pipelines, attempt budgets, parallel review, branch and workflow-state tracking, and scheduled loops are not implemented yet.
+
+`index.ts` is the plugin entry point. `docs/factory/invariants.md` tracks enforcement. `docs/automations/` owns loop instructions and state. `PLAN.md` defines the target factory and phase gates.

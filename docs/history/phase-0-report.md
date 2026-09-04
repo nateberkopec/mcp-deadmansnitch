@@ -1,5 +1,7 @@
 # Phase 0 run report
 
+Finalized 2026-09-04. This is a historical snapshot of the Phase 0 gate, not current operating guidance.
+
 ## Repository work completed
 
 The repository left its fork network, all legacy tags and the `upstream` remote were removed, and the Python-era implementation and caches were replaced by the four-crate Rust/mise workspace. Repository-owned verifiers, routed documents, CI and release scaffolding, Amp orb lifecycle scripts, the factory plugin, automation runbooks, and the sanitized factory-improvement backlog are present. Code comments are prohibited by `AGENTS.md` and enforced by `bin/check-no-comments` locally, in hooks, and in CI.

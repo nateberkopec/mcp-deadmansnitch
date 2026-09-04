@@ -3,6 +3,12 @@ set -l failed 0
 set -l slash_files (rg --files --hidden -g '*.rs' -g '*.ts' -g '*.js' -g '*.pkl' -g '*.css')
 set -l hash_files (rg --files --hidden -g '*.toml' -g '*.yml' -g '*.yaml' -g '*.fish' -g '*.sh' -g '*.bash')
 set -l markup_files (rg --files --hidden -g '*.html' -g '*.xml' -g '*.svg')
+for file in (git ls-files --cached --others --exclude-standard)
+    if test -x $file
+        set -a hash_files $file
+    end
+end
+set hash_files (printf '%s\n' $hash_files | sort -u)
 
 if test (count $slash_files) -gt 0; and rg -n --pcre2 '(?<!:)//|/\*|\*/' $slash_files
     set failed 1

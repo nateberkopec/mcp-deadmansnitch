@@ -1,0 +1,92 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+failures=0
+
+require_path() {
+  if [[ ! -e "$1" ]]; then
+    printf 'MISSING: %s\n' "$1"
+    failures=$((failures + 1))
+  fi
+}
+
+paths=(
+  Cargo.toml
+  Cargo.lock
+  rust-toolchain.toml
+  mise.toml
+  hk.pkl
+  deny.toml
+  .gitleaks.toml
+  AGENTS.md
+  CLAUDE.md
+  docs/ARCHITECTURE.md
+  docs/factory/readme.md
+  docs/factory/invariants.md
+  CONTRIBUTING.md
+  LICENSE
+  CHANGELOG.md
+  docs/MISTAKES.md
+  docs/LEARNINGS.md
+  docs/DESIRES.md
+  docs/history/README.md
+  docs/history/phase-0-plan.md
+  docs/history/phase-0-report.md
+  docs/automations/factory-improvement/runbook.md
+  docs/automations/factory-improvement/backlog.md
+  .agents/setup
+  .agents/resume
+  .amp/plugins/factory/index.ts
+  bin/check-no-comments
+)
+
+for path in "${paths[@]}"; do
+  require_path "$path"
+done
+
+for crate in deadmanssnitch mcp-deadmanssnitch deadmanssnitch-twin deadmanssnitch-conformance; do
+  require_path "crates/$crate/Cargo.toml"
+done
+
+for guard in rust-code testing-and-proof tool-contract-stability errors-and-retries dependencies twin-fidelity; do
+  require_path "docs/guardrails/$guard.md"
+done
+
+for runbook in twin-drift dependency-sweep release security-red-team doc-drift coverage-ratchet flake-hunter refactor qa-explorer loop-health; do
+  require_path "docs/automations/$runbook.md"
+done
+
+for removed in .python-version .pre-commit-config.yaml .envrc .claude; do
+  if [[ -e "$removed" ]]; then
+    printf 'PYTHON REMNANT: %s\n' "$removed"
+    failures=$((failures + 1))
+  fi
+done
+
+if [[ -f .env ]] && grep -q '^DEADMANSSNITCH_API_KEY=' .env; then
+  printf '%s\n' 'INVALID ENV: use DEADMANSNITCH_API_KEY'
+  failures=$((failures + 1))
+fi
+
+if ! grep -q '^rust = "1.88.0"' mise.toml || ! grep -q '^channel = "1.88.0"' rust-toolchain.toml; then
+  printf '%s\n' 'TOOLCHAIN DRIFT: mise and rust-toolchain must both pin 1.88.0'
+  failures=$((failures + 1))
+fi
+
+if ! cargo metadata --no-deps --format-version 1 >/dev/null; then
+  printf '%s\n' 'FAILED: cargo metadata'
+  failures=$((failures + 1))
+fi
+
+if ! hk config dump >/dev/null; then
+  printf '%s\n' 'FAILED: hk config dump'
+  failures=$((failures + 1))
+fi
+
+if ((failures == 0)); then
+  printf '%s\n' 'Development environment checks passed.'
+else
+  printf '%s development environment check(s) failed.\n' "$failures"
+fi
+
+exit "$failures"

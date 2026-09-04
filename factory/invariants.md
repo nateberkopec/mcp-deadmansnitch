@@ -8,12 +8,12 @@ Factory-owned index. Implementing agents use routed guardrails; product requirem
 
 | ID | Invariant | Proof | Status |
 |---|---|---|---|
-| INV-001 | Rust and tools stay pinned through mise. | mise configs, orb scripts, dev-env check | Enforced |
+| INV-001 | Rust and tools stay pinned through mise. | mise declarations and Rust parity check; other-tool CI parity remains unchecked | Partial |
 | INV-002 | Rust, Clippy, and rustdoc produce no warnings. | lint task, CI | Enforced |
 | INV-003 | Production Rust contains no unsafe code. | workspace lint, CI | Enforced |
 | INV-004 | Code contains no comments. | comment linter, hk, CI | Enforced |
 | INV-005 | Lint allowances are local and carry reasons. | Rust guardrail, review | Guarded |
-| INV-006 | Dependencies use approved sources, licenses, versions, and workspace declarations. | cargo-deny, review | Enforced |
+| INV-006 | Dependencies use approved sources, licenses, versions, and workspace declarations. | cargo-deny enforces source/license/version policy; workspace declarations rely on review | Partial |
 | INV-007 | Commits use conventional messages. | hk hook | Guarded |
 | INV-008 | Architecture remains a version-free codemap. | doc-drift review | Guarded |
 
@@ -31,14 +31,14 @@ Factory-owned index. Implementing agents use routed guardrails; product requirem
 
 | ID | Invariant | Proof | Status |
 |---|---|---|---|
-| INV-020 | Credentials never enter output, logs, errors, debug data, commits, or reports. | gitleaks, canary tests | Partial |
+| INV-020 | Credentials never enter output, logs, errors, debug data, commits, or reports. | gitleaks; runtime canary tests remain unimplemented | Partial |
 | INV-021 | Upstream text remains framed as untrusted data. | adversarial tests | Planned |
 | INV-022 | Requests allow three ten-second attempts, one-MiB responses, and bounded delays. | boundary tests | Planned |
 | INV-023 | MCP and DMS credentials remain separate; bearer comparison is constant-time. | middleware tests | Planned |
 | INV-024 | Secret scans never print values. | redacted gitleaks tasks | Enforced |
 | INV-025 | Remote HTTP requires authentication and rejects disallowed origins. | transport tests | Planned |
 | INV-026 | Tracing uses plain stderr and excludes credentials. | process tests | Planned |
-| INV-027 | Configuration rejects the legacy API-key misspelling. | dev-env, config tests | Partial |
+| INV-027 | Configuration rejects the legacy API-key misspelling. | bin/check-dev-env checks .env; runtime configuration tests remain unimplemented | Partial |
 
 ## MCP
 
@@ -71,14 +71,14 @@ Factory-owned index. Implementing agents use routed guardrails; product requirem
 |---|---|---|---|
 | INV-050 | Every role except chief of staff works in a mise-backed orb; each implementation issue has one worker; reviews and conflict resolution use fresh orbs. | agent config check, factory-operation guardrail, seal | Guarded |
 | INV-051 | Exit codes, never models, decide deterministic gates. | merge tool, CI, factory-operation guardrail | Guarded |
-| INV-052 | Main receives no DMS credentials; twin validation receives only the DMS test key; holdout validation receives only its repository token. | Amp project controls | Enforced |
+| INV-052 | Main receives no DMS credentials; twin validation receives only the DMS test key; holdout validation receives only its repository token. | Amp project secret inventory and chief environment membership checks; cross-project runtime qualification pending | Partial |
 | INV-053 | Passing CI and a current-head reviewer with no further feedback permits merge; after activation, factory changes also need an owner-signed current head. | merge tool, factory-operation guardrail, seal | Guarded |
 | INV-054 | Publishing, destructive, and account actions require authority. | agent policy, authority controls | Guarded |
-| INV-055 | Transcript analysis stores only aggregate sanitized evidence. | agent definition, review, gitleaks | Guarded |
+| INV-055 | Transcript analysis stores only aggregate sanitized evidence. | factory/agents/factory-improver.json requires aggregate redacted evidence; gitleaks scans repository artifacts | Guarded |
 | INV-056 | Normative knowledge lives in the repository; GitHub holds workflow state. | agent contexts, review | Guarded |
-| INV-057 | A worker gets five attempts; exhaustion halts; later attempts read prior mistakes. | serialized attempt controller, factory-operation guardrail | Guarded |
+| INV-057 | A worker gets five attempts; exhaustion halts; later attempts read prior mistakes. | factory/qualification.test.mjs exercises attempt exhaustion and third-attempt instructions; actual reading remains an agent obligation | Partial |
 | INV-058 | The chief creates issues only when capacity exists; GitHub state survives interruption; changed heads repeat CI and review. | serialized controller, factory-operation guardrail | Guarded |
 | INV-059 | Automations follow code-owned configuration, report to the chief, honor backpressure, and recover after failure. | automation config, hourly dispatcher, factory-operation guardrail | Guarded |
 | INV-060 | Explicitly authorized release PRs create tags; cargo-dist builds tested tags. | release workflows, factory-operation guardrail | Planned |
-| INV-061 | Actions use least privilege and immutable SHAs; crate publishing uses OIDC. | workflow policy, review | Partial |
+| INV-061 | Actions use least privilege and immutable SHAs; crate publishing uses OIDC. | current workflow permission/SHA inspection; release-plz and release workflows remain placeholders | Partial |
 | INV-062 | Releases cover four targets and carry provenance. | cargo-dist configuration, review | Planned |

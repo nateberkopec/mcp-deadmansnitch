@@ -196,7 +196,7 @@ export default async function factoryPlugin(amp: PluginAPI): Promise<void> {
   for (const name of agentNames) configuredAgent(name);
 
   const issueComments = async (issue: number): Promise<GitHubComment[]> => {
-    const result = await amp.$`gh issue view ${issue} --json comments`;
+    const result = await amp.$`mise exec -- gh issue view ${issue} --json comments`;
     if (result.exitCode !== 0) {
       throw new Error(result.stderr);
     }
@@ -204,7 +204,7 @@ export default async function factoryPlugin(amp: PluginAPI): Promise<void> {
   };
 
   const pullRequestState = async (pullRequest: number): Promise<PullRequestState> => {
-    const result = await amp.$`gh pr view ${pullRequest} --json headRefOid,headRefName,mergeable,state,statusCheckRollup,comments,closingIssuesReferences`;
+    const result = await amp.$`mise exec -- gh pr view ${pullRequest} --json headRefOid,headRefName,mergeable,state,statusCheckRollup,comments,closingIssuesReferences`;
     if (result.exitCode !== 0) {
       throw new Error(result.stderr);
     }
@@ -212,7 +212,7 @@ export default async function factoryPlugin(amp: PluginAPI): Promise<void> {
   };
 
   const control = async (): Promise<{ capacity: number; issue: number; threadID: ThreadID } | undefined> => {
-    const result = await amp.$`gh issue list --state open --label factory:control --limit 2 --json body,number`;
+    const result = await amp.$`mise exec -- gh issue list --state open --label factory:control --limit 2 --json body,number`;
     if (result.exitCode !== 0) {
       throw new Error(result.stderr);
     }
@@ -244,7 +244,7 @@ export default async function factoryPlugin(amp: PluginAPI): Promise<void> {
   };
   const recordUsage = async (issue: number, role: string, id: ThreadID, startedAt?: number) => {
     const elapsed = startedAt === undefined ? "elapsed-unavailable" : `${Date.now() - startedAt}ms`;
-    const record = await amp.$`gh issue comment ${issue} --body ${`FACTORY_USAGE ${role} ${id} ${elapsed}\n${await usageDetails(id)}`}`;
+    const record = await amp.$`mise exec -- gh issue comment ${issue} --body ${`FACTORY_USAGE ${role} ${id} ${elapsed}\n${await usageDetails(id)}`}`;
     if (record.exitCode !== 0) throw new Error(record.stderr);
     usageRecords.add(id);
   };
@@ -291,17 +291,17 @@ export default async function factoryPlugin(amp: PluginAPI): Promise<void> {
     });
 
   const reserveBranch = async (branch: string): Promise<boolean> => {
-    const repository = await amp.$`gh repo view --json nameWithOwner --jq .nameWithOwner`;
-    const base = await amp.$`gh api ${`repos/${repository.stdout.trim()}/git/ref/heads/main`} --jq .object.sha`;
+    const repository = await amp.$`mise exec -- gh repo view --json nameWithOwner --jq .nameWithOwner`;
+    const base = await amp.$`mise exec -- gh api ${`repos/${repository.stdout.trim()}/git/ref/heads/main`} --jq .object.sha`;
     if (repository.exitCode !== 0 || base.exitCode !== 0) {
       throw new Error(repository.stderr || base.stderr);
     }
     const endpoint = `repos/${repository.stdout.trim()}/git/ref/heads/${branch}`;
-    const reservation = await amp.$`gh api --method POST ${`repos/${repository.stdout.trim()}/git/refs`} -f ref=${`refs/heads/${branch}`} -f sha=${base.stdout.trim()}`;
+    const reservation = await amp.$`mise exec -- gh api --method POST ${`repos/${repository.stdout.trim()}/git/refs`} -f ref=${`refs/heads/${branch}`} -f sha=${base.stdout.trim()}`;
     if (reservation.exitCode === 0) {
       return true;
     }
-    const existing = await amp.$`gh api ${endpoint}`;
+    const existing = await amp.$`mise exec -- gh api ${endpoint}`;
     if (existing.exitCode !== 0) {
       throw new Error(reservation.stderr);
     }
@@ -338,9 +338,9 @@ export default async function factoryPlugin(amp: PluginAPI): Promise<void> {
         if (workers.length > 1) {
           throw new Error(`issue #${issue} has multiple workers`);
         }
-        const activeLabel = await amp.$`gh label create factory:active --color 0052CC --force`;
-        const implementationLabel = await amp.$`gh label create factory:implementation --color 0E8A16 --force`;
-        const active = await amp.$`gh issue list --state open --label factory:active --limit 100 --json number`;
+        const activeLabel = await amp.$`mise exec -- gh label create factory:active --color 0052CC --force`;
+        const implementationLabel = await amp.$`mise exec -- gh label create factory:implementation --color 0E8A16 --force`;
+        const active = await amp.$`mise exec -- gh issue list --state open --label factory:active --limit 100 --json number`;
         if (activeLabel.exitCode !== 0 || implementationLabel.exitCode !== 0 || active.exitCode !== 0) {
           throw new Error(activeLabel.stderr || implementationLabel.stderr || active.stderr);
         }
@@ -348,7 +348,7 @@ export default async function factoryPlugin(amp: PluginAPI): Promise<void> {
         if (!activeIssues.includes(issue) && activeIssues.length >= capacity) {
           throw new Error("worker capacity is full");
         }
-        const activate = await amp.$`gh issue edit ${issue} --add-label factory:active --add-label factory:implementation`;
+        const activate = await amp.$`mise exec -- gh issue edit ${issue} --add-label factory:active --add-label factory:implementation`;
         if (activate.exitCode !== 0) {
           throw new Error(activate.stderr);
         }
@@ -367,7 +367,7 @@ export default async function factoryPlugin(amp: PluginAPI): Promise<void> {
           throw new Error(`worker startup is reserved for issue #${issue}; recover its missing worker record before retrying`);
         }
         const thread = await worker.createThread({ executor: workerConfig.executor, visibility: workerConfig.visibility });
-        const record = await amp.$`gh issue comment ${issue} --body ${`FACTORY_WORKER ${thread.id}\nFACTORY_ATTEMPT 1`}`;
+        const record = await amp.$`mise exec -- gh issue comment ${issue} --body ${`FACTORY_WORKER ${thread.id}\nFACTORY_ATTEMPT 1`}`;
         if (record.exitCode !== 0) {
           throw new Error(record.stderr);
         }
@@ -419,13 +419,13 @@ export default async function factoryPlugin(amp: PluginAPI): Promise<void> {
         const attempt = Math.max(0, ...attempts) + 1;
         if (attempt > (workerConfig.attemptLimit ?? 1)) {
           if (!comments.some(({ body }) => body === "FACTORY_BLOCKED attempt budget exhausted")) {
-            const blocked = await amp.$`gh issue comment ${issue} --body ${"FACTORY_BLOCKED attempt budget exhausted"}`;
+            const blocked = await amp.$`mise exec -- gh issue comment ${issue} --body ${"FACTORY_BLOCKED attempt budget exhausted"}`;
             if (blocked.exitCode !== 0) throw new Error(blocked.stderr);
             await recordUsage(state.issue, "issue-worker", id);
           }
           return JSON.stringify({ issue, threadID: id, blocked: true });
         }
-        const record = await amp.$`gh issue comment ${issue} --body ${`FACTORY_ATTEMPT ${attempt}`}`;
+        const record = await amp.$`mise exec -- gh issue comment ${issue} --body ${`FACTORY_ATTEMPT ${attempt}`}`;
         if (record.exitCode !== 0) {
           throw new Error(record.stderr);
         }
@@ -489,7 +489,7 @@ export default async function factoryPlugin(amp: PluginAPI): Promise<void> {
         const issue = before.closingIssuesReferences[0].number;
         const current = reviewGenerations.get(pullRequest) === generation;
         const marker = `FACTORY_REVIEW ${before.headRefOid} ${verdict} ISSUE ${issue} REVIEWER ${result.threadID} GENERATION ${generation}`;
-        const comment = await amp.$`gh pr comment ${pullRequest} --body ${`${marker}\n\n${result.text}`}`;
+        const comment = await amp.$`mise exec -- gh pr comment ${pullRequest} --body ${`${marker}\n\n${result.text}`}`;
         if (comment.exitCode !== 0) {
           throw new Error(comment.stderr);
         }
@@ -656,11 +656,11 @@ export default async function factoryPlugin(amp: PluginAPI): Promise<void> {
       ) {
         throw new Error("issue worker provenance is invalid");
       }
-      const result = await amp.$`gh pr merge ${pullRequest} --squash --match-head-commit ${state.headRefOid}`;
+      const result = await amp.$`mise exec -- gh pr merge ${pullRequest} --squash --match-head-commit ${state.headRefOid}`;
       if (result.exitCode !== 0) {
         throw new Error(result.stderr);
       }
-      const deactivate = await amp.$`gh issue edit ${issue} --remove-label factory:active`;
+      const deactivate = await amp.$`mise exec -- gh issue edit ${issue} --remove-label factory:active`;
         await recordUsage(controlState.issue, "issue-worker", workers[0] as ThreadID);
         return JSON.stringify({
           pullRequest,
@@ -701,7 +701,7 @@ export default async function factoryPlugin(amp: PluginAPI): Promise<void> {
       const configured = configuredAgent(automation.agent);
       const marker = `FACTORY_AUTOMATION ${input.eventID} ${input.automation}`;
       const record = async (body: string) => {
-        const result = await amp.$`gh issue comment ${state.issue} --body ${body}`;
+        const result = await amp.$`mise exec -- gh issue comment ${state.issue} --body ${body}`;
         if (result.exitCode !== 0) throw new Error(result.stderr);
       };
       const complete = async (attempt: number, id: ThreadID, startedAt: number, text: string) => {
@@ -758,8 +758,8 @@ export default async function factoryPlugin(amp: PluginAPI): Promise<void> {
           if (queue === undefined) throw new Error("invalid automation queue");
           const capacity = typeof queue.capacity === "number" ? queue.capacity : state.capacity;
           const labelName = queue.activeLabel ?? queue.label;
-          const label = await amp.$`gh label create ${labelName} --color D4C5F9 --force`;
-          const entries = await amp.$`gh issue list --state open --label ${labelName} --limit 100 --json number`;
+          const label = await amp.$`mise exec -- gh label create ${labelName} --color D4C5F9 --force`;
+          const entries = await amp.$`mise exec -- gh issue list --state open --label ${labelName} --limit 100 --json number`;
           if (label.exitCode !== 0 || entries.exitCode !== 0) {
             throw new Error(label.stderr || entries.stderr);
           }
@@ -837,7 +837,7 @@ export default async function factoryPlugin(amp: PluginAPI): Promise<void> {
       if (maxConcurrency > 10) {
         throw new Error("maxConcurrency cannot exceed 10");
       }
-      const label = await amp.$`gh label create factory:control --color 5319E7 --force`;
+      const label = await amp.$`mise exec -- gh label create factory:control --color 5319E7 --force`;
       if (label.exitCode !== 0) {
         throw new Error(label.stderr);
       }
@@ -860,7 +860,7 @@ export default async function factoryPlugin(amp: PluginAPI): Promise<void> {
         throw new Error("factory startup is reserved; retry with recover after confirming the prior launch failed");
       }
       const thread = await chief.createThread({ executor: chiefConfig.executor, visibility: chiefConfig.visibility });
-      const record = await amp.$`gh issue create --title ${"Factory control"} --label factory:control --body ${`FACTORY_CHIEF ${thread.id}\nFACTORY_MAX_CONCURRENCY ${maxConcurrency}`}`;
+      const record = await amp.$`mise exec -- gh issue create --title ${"Factory control"} --label factory:control --body ${`FACTORY_CHIEF ${thread.id}\nFACTORY_MAX_CONCURRENCY ${maxConcurrency}`}`;
       if (record.exitCode !== 0) {
         throw new Error(record.stderr);
       }
@@ -913,7 +913,7 @@ export default async function factoryPlugin(amp: PluginAPI): Promise<void> {
               type: "user-message",
               content: `Run due automations: ${payload.automations.join(", ")}. Use eventID ${event.id} for each run and process duplicate event IDs only once.`,
             });
-            const record = await amp.$`gh issue comment ${current.issue} --body ${marker}`;
+            const record = await amp.$`mise exec -- gh issue comment ${current.issue} --body ${marker}`;
             if (record.exitCode !== 0) {
               throw new Error(record.stderr);
             }

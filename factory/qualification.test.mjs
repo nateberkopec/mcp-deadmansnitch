@@ -22,11 +22,17 @@ async function harness() {
     failComment: () => false,
     reply: async () => "ACCEPT",
     usageAvailable: true,
+    webhook: undefined,
     issue(number, labels = []) {
       issues.set(number, { number, body: "", labels: new Set(labels), comments: [] });
     },
     comments(number = 1) { return issues.get(number).comments.map(({ body }) => body); },
     call(name, input = {}, id = "T-chief") { return tools.get(name).execute(input, { thread: { id } }).then(JSON.parse); },
+    async prepare() {
+      const inputs = [];
+      await commands.get("factory.prepare-automations")({ thread: { id: "T-chief" }, ui: { async input(options) { inputs.push(options); } } });
+      return inputs;
+    },
     async reload() {
       tools = new Map();
       commands = new Map();
@@ -66,9 +72,10 @@ async function harness() {
         registerAgentMode(mode) { assert.ok(!modes.has(mode.key)); modes.set(mode.key, mode); },
         registerTool(tool) { tools.set(tool.name, tool); },
         registerCommand(name, options, handler) { commands.set(name, handler); },
+        async createWebhook(options) { h.webhook = options; return { url: "https://ampcode.com/test-webhook-credential" }; },
         threads: { get(id) { assert.ok(threads.has(id), `unknown thread ${id}`); return threads.get(id); } },
         async $(strings, ...values) {
-          const command = strings.reduce((text, part, index) => text + part + (values[index] ?? ""), "");
+          const command = strings.reduce((text, part, index) => text + part + (values[index] ?? ""), "").replace(/^mise exec -- /, "");
           requests.push(command);
           if (command.startsWith("amp threads usage")) return h.usageAvailable ? result("usage=1") : failure();
           if (command.startsWith("gh label create")) return result("");
@@ -287,4 +294,38 @@ test("a qualified head merges and records worker usage", async () => {
   assert.equal(pr.state, "MERGED");
   assert.ok(!h.issues.get(2).labels.has("factory:active"));
   assert.ok(h.comments().some((body) => body.startsWith("FACTORY_USAGE issue-worker")));
+});
+
+test("webhook preparation uses owner handoff and deduplicates deliveries", async () => {
+  const h = await harness();
+  const messages = [];
+  const inputs = await h.prepare();
+  assert.equal(inputs[0].initialValue, "https://ampcode.com/test-webhook-credential");
+  assert.ok(!h.requests.some((command) => /gh (secret|variable)/.test(command)));
+  const ctx = { thread: { id: "T-chief", async appendUserMessage(value) { messages.push(value); } } };
+  const event = { id: "delivery-1", body: new TextEncoder().encode(JSON.stringify({ automations: ["loopHealth"] })) };
+  await h.webhook.handler(event, ctx);
+  await h.webhook.handler(event, ctx);
+  assert.equal(messages.length, 1);
+  assert.match(messages[0].content, /Use eventID delivery-1/);
+  assert.deepEqual(h.comments(), ["FACTORY_EVENT delivery-1 DELIVERED"]);
+  assert.equal(h.created.length, 0);
+  await assert.rejects(h.webhook.handler({ ...event, id: "delivery-2", body: new TextEncoder().encode('{"automations":["unconfigured"]}') }, ctx), /invalid automation event/);
+  await assert.rejects(h.webhook.handler(event, { ...ctx, thread: { id: "T-other" } }), /not owned/);
+});
+
+test("conflict resolution creates a separate orb and invalidates the old review", async () => {
+  const h = await harness();
+  h.issue(2);
+  await h.call("factory_start_issue", { issue: 2 });
+  const pr = h.pr(3, 2);
+  await h.call("factory_review_pull_request", { pullRequest: 3 });
+  pr.mergeable = "CONFLICTING";
+  h.reply = async () => { pr.mergeable = "MERGEABLE"; pr.headRefOid = "head-b"; return "Resolved"; };
+  const resolved = await h.call("factory_resolve_conflicts", { pullRequest: 3 });
+  assert.equal(resolved.resolved, true);
+  assert.equal(h.created.length, 3);
+  assert.equal(h.created.at(-1).definition.display.label, "Conflict resolver");
+  await assert.rejects(h.call("factory_merge_pull_request", { pullRequest: 3 }), /not ready/);
+  assert.ok(h.comments().some((body) => body.startsWith("FACTORY_USAGE conflict-resolver")));
 });

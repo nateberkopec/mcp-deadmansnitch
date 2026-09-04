@@ -164,7 +164,10 @@ export default async function factoryPlugin(amp: PluginAPI): Promise<void> {
   ) {
     throw new Error("invalid automation configuration");
   }
+  const configuredAgents = new Map<string, ConfiguredAgent>();
   const configuredAgent = (name: (typeof agentNames)[number]): ConfiguredAgent => {
+    const existing = configuredAgents.get(name);
+    if (existing !== undefined) return existing;
     const config = agentFiles.get(name);
     if (config === undefined) {
       throw new Error(`missing agent definition: ${name}`);
@@ -184,8 +187,13 @@ export default async function factoryPlugin(amp: PluginAPI): Promise<void> {
     if (config.model !== null) {
       options.model = config.model;
     }
-    return { agent: amp.createAgent(options), config };
+    const agent = amp.createAgent(options);
+    amp.registerAgentMode({ key: name, description: config.output, agent: agent.definition });
+    const configured = { agent, config };
+    configuredAgents.set(name, configured);
+    return configured;
   };
+  for (const name of agentNames) configuredAgent(name);
 
   const issueComments = async (issue: number): Promise<GitHubComment[]> => {
     const result = await amp.$`gh issue view ${issue} --json comments`;

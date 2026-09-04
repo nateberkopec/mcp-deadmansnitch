@@ -3,7 +3,7 @@
 Every agent starts with [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), then reads
 only the relevant [`guardrail`](docs/guardrails/) or
 [`runbook`](docs/automations/). API contracts live in
-[`docs/reference/`](docs/reference/). [`PLAN.md`](PLAN.md) records decisions;
+[`docs/reference/`](docs/reference/). [`docs/PLAN.md`](docs/PLAN.md) records decisions;
 explicit user authority prevails.
 
 Keep work narrow. Write no code comments. Match proof to claims and follow

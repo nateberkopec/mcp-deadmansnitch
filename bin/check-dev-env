@@ -21,6 +21,7 @@ paths=(
   AGENTS.md
   CLAUDE.md
   docs/ARCHITECTURE.md
+  docs/PLAN.md
   docs/factory/readme.md
   docs/factory/invariants.md
   CONTRIBUTING.md
@@ -37,6 +38,8 @@ paths=(
   .agents/setup
   .agents/resume
   .amp/plugins/factory/index.ts
+  .github/workflows/factory-approval.yml
+  bin/check-factory-approval
   bin/check-no-comments
 )
 

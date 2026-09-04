@@ -65,11 +65,11 @@ that this section does not list.
 | What runs locally | Two things run locally. The first is the workflow orchestrator, which is the Amp plugin in this repo. The second is one chief-of-staff agent (Puck or an equivalent) that reports, routes questions, and launches work. No one writes or tests code on the local machine |
 | Isolation | Use one fresh orb for each attempt, each review, each judgment, and each loop run. `.agents/setup` installs the mise toolchain, warms the cargo cache, and builds the twin. Amp makes a snapshot of the orb for reuse. `.agents/resume` checks the toolchain again |
 | Secrets in orbs | Use Amp OIDC workload identity for services that support federation. DMS does not, so keep its static key as a secret in a dedicated Amp validation project used only by the drift loop and QA explorer; implementation orbs use the main project and never receive it |
-| Workflows | The plugin is TypeScript and is checked in at `.amp/plugins/factory/`. Phases 1 through 5 are pipeline functions. The gates are `amp.$` shell steps. The exit code decides whether the pipeline continues, and the model never runs a gate. Attempt budgets, parallel attempts, and human gates are code. Each attempt pushes a branch. The plugin records the workflow state in the repo, because Amp has no checkpoint and no resume |
+| Workflows | The plugin is TypeScript and is checked in at `.amp/plugins/factory/`. Phases 1 through 5 are pipeline functions. The gates are `amp.$` shell steps. The exit code decides whether the pipeline continues, and the model never runs a gate. Attempt budgets, parallel attempts, merge policy, and approval checks are code. Each attempt pushes a branch. The plugin records the workflow state in the repo, because Amp has no checkpoint and no resume |
 | Model and provider | Deferred. The plugin exposes model and effort as parameters of each step. This stage makes no choice |
 | Attempt budget | Allow five attempts for each gate, each in a fresh orb, from the last commit that passed. Then halt and write a report. The report gives what the attempts tried, what failed, and the reviewer's last verdict. Attempt three and each later attempt must read the docs/MISTAKES.md entries from the earlier attempts |
 | Parallel attempts | For the twin state machine and for the HTTP-plus-conformance gate, run three attempts in parallel orbs. A code step makes a table with one row for each attempt. The table gives the lines of code from `tokei`, the clippy cognitive complexity, the test count, the coverage, and the gate results. A reviewer agent in a fresh orb selects the winner and must cite the table. Keep the losing branches for one week, then delete them |
-| Human gates | Only a human merges these pull requests. Each change that expands the spec goes through one. Such changes include new scenarios, new holdouts, and new tool behavior |
+| Merge policy | Merge a pull request as soon as CI passes and an independent reviewer has no further feedback. If it changes the factory, require trusted human approval of the current head through the `Factory Approval` check. Publishing and account changes still require explicit authority |
 | Work queue | The work queue is GitHub issues. A human sets a label to mark an issue approved. The plugin's webhook launches an implementation thread on that label |
 | Cost tracking | Each run report records the orb hours for each gate and for each loop |
 
@@ -92,7 +92,7 @@ that this section does not list.
 | Decision | Choice |
 |---|---|
 | Release builds | `cargo-dist` generates the GitHub Actions release workflow, builds all targets, and signs build-provenance attestations. Patch its action references to full SHAs. Mark the file `allow-dirty = ["ci"]` |
-| Release automation | `release-plz` opens release PRs from conventional commits. It maintains the changelog, bumps the versions, and makes the tags. The release runbook is "review the release PR, then merge it" |
+| Release automation | `release-plz` opens release PRs from conventional commits. It maintains the changelog, bumps versions, and makes tags. Merge waits for explicit publishing authority, passing CI, and an independent reviewer with no further feedback |
 | Targets | Build for Linux musl and macOS, each on x86_64 and aarch64. Do not build for Windows |
 | Channels | Supply a shell installer, `cargo install`, a GHCR container image, and an MCP registry entry (`server.json`). Supply no PowerShell installer, no MCPB bundle, and no Homebrew tap |
 | Dependencies | Run Dependabot monthly, with grouped updates and a cooldown of seven days. Run `cargo deny check advisories` weekly on a schedule. Pin the actions to full SHAs. Set the default workflow permissions to read-only. Publish to crates.io with OIDC trusted publishing |
@@ -110,8 +110,8 @@ is complete when a spec and a test suite exist.
 The interactive work is this plan and the interview that produced it. The
 non-interactive work is Phases 0 through 5. The workflow plugin runs those
 phases in orbs and gives each attempt a fresh context. No human acts between
-"inputs complete" and "holdouts pass", except at the human gates that section 0
-names.
+"inputs complete" and "holdouts pass" unless the work changes the factory or
+requires explicit publishing or account authority.
 
 These inputs make this a non-interactive case:
 
@@ -196,8 +196,8 @@ that matters is this: "you do not reach the next step unless this code passes".
 That property exists only when the workflow lives outside the model. Therefore
 the workflow is a checked-in program. The gates are shell commands, and their
 exit codes route the run. The model sees pass or fail plus a failure summary.
-Retries, attempt budgets, parallel attempts, and human gates are policy, and
-therefore they are code, not prompt text.
+Retries, attempt budgets, parallel attempts, merge policy, and approval checks
+are policy, and therefore they are code, not prompt text.
 
 The plane is Amp. Each attempt, review, judgment, QA run, and background loop
 runs in its own orb. The local machine runs the orchestrator plugin and one
@@ -207,11 +207,10 @@ so the plugin registers a durable factory-health webhook as the recovery path.
 Each loop delegates to its runbook and reports its status at the end, and the
 loop-health loop watches for paused schedules.
 
-Two generative processes feed the factory. Both expand the spec, so both end at
-a human gate:
+Two generative processes feed the factory and use its normal merge policy:
 
-- The QA explorer acts as a user against the twin with random seeds and faults. It runs in a fresh orb and cannot reach the implementation threads. Its output is an issue plus a pull request that adds a scenario file in Given, When, Then form. A triage step removes duplicates of open issues and assigns a severity. Nothing enters `scenarios/` or the holdout repo until a human merges the PR.
-- The refactor agent runs continuously with one mission: fewer lines of code. A person closes its PR unread unless the tests stay green, the coverage does not drop, and the line count drops.
+- The QA explorer acts as a user against the twin with random seeds and faults. It runs in a fresh orb and cannot reach the implementation threads. Its output is an issue plus a pull request that adds a scenario file in Given, When, Then form. A triage step removes duplicates and assigns severity. The PR merges when CI passes and an independent reviewer has no further feedback.
+- The refactor agent runs continuously with one mission: fewer lines of code. Its PR merges when tests stay green, coverage does not drop, line count falls, and an independent reviewer has no further feedback.
 
 ## 2. Functional spec
 
@@ -410,7 +409,7 @@ docs/ARCHITECTURE.md           codemap and boundaries (no version literals)
 docs/factory/readme.md        factory structure and operating model
 docs/factory/invariants.md     factory-owned invariant and enforcement registry
 CONTRIBUTING.md           setup, direct cargo commands, proof expectations
-PLAN.md                   this file
+docs/PLAN.md              this file
 CHANGELOG.md              maintained by release-plz
 LICENSE                   MIT, both copyright lines
 Cargo.toml                workspace
@@ -505,13 +504,13 @@ two hours; recover from a 429 in the middle of a task; refuse to delete without
 confirmation; behave sensibly when the key is wrong; and notice a plan limit and
 tell the user. About twenty scenarios live in `scenarios/`, and five are
 withheld in the private holdout repo. After Phase 5, the QA explorer is the main
-source of new scenarios, and each one enters through a human-merged PR.
+source of new scenarios, and each one enters through the normal reviewed and CI-gated merge path.
 Satisfaction is a fraction, not a boolean. The release gate is 100% on the
 holdouts across three consecutive runs.
 
 ## 8. Phases and gates
 
-Each active phase ends at a gate that a machine can check and is driven by the workflow plugin in orbs. Phase 0 is complete; its definition and evidence are preserved in [`docs/history/`](docs/history/).
+Each active phase ends at a gate that a machine can check and is driven by the workflow plugin in orbs. Phase 0 is complete; its definition and evidence are preserved in [`docs/history/`](history/).
 
 ### Phase 1: twin and differential suite
 
@@ -558,19 +557,18 @@ runbook states the condition that should remain true, the drift signal, the
 evidence that a change restores the condition, the authority level, the durable
 state that the loop keeps, and its retirement condition. The prompt of each loop
 is two sentences that delegate to the runbook. Each loop ends by writing a
-status line that the loop-health loop reads. Each loop that changes anything
-opens a PR, and no loop merges one.
+status line that the loop-health loop reads. Each loop that changes anything opens a PR. The factory merges it after CI passes and an independent reviewer has no further feedback; factory changes additionally require current-head human approval.
 
 | Loop | Cadence | Authority | What it does |
 |---|---|---|---|
 | Twin drift | Weekly | Report-only | Runs the live differential suite. On a diff, it opens an issue with the normalized diff and a proposed twin change. It never deletes anything that it did not create |
 | Dependency sweep | Monthly | PR | Re-pins `mise.toml` and the Cargo deps, and respects the cooldown. Runs the full matrix. Opens a PR |
-| Release | On release PR | PR review | The human reviews the release PR and then merges it. The loop prepares the review |
+| Release | On release PR | PR review | Prepares release evidence. Because merge triggers publishing, it waits for explicit publishing authority before using the normal reviewed and CI-gated merge path |
 | Security red team | Weekly | Report-only | Red-teams the repo. It must prove impact or exploitability before it files. Its surface is the HTTP auth, the Origin handling, prompt injection through upstream text, secret leakage, and SSRF through the URL override flags |
 | Doc drift | Weekly | PR | Checks that every path and symbol cited in `docs/ARCHITECTURE.md` and the guardrails still resolves, and that the README claims match the generated tables |
 | Coverage ratchet | Monthly | PR | Proposes a higher floor for any crate that has stayed above its floor for a month |
 | Flake hunter | Weekly | Issue | Reruns the suite N times. It files anything nondeterministic as an infrastructure bug |
-| Refactor | Continuous | PR | Has one mission: fewer lines of code. A person closes its PR unread unless the tests stay green, the coverage does not drop, and the line count drops |
-| QA explorer | Continuous | Issue plus PR | Acts as a user against the twin, with random seeds and faults, in a fresh orb. Files an issue and a PR that adds a Given, When, Then scenario. Triage removes duplicates and assigns a severity. A human merges or closes |
+| Refactor | Continuous | PR | Has one mission: fewer lines of code. Merges after CI passes, coverage holds, line count drops, and an independent reviewer has no further feedback |
+| QA explorer | Continuous | Issue plus PR | Acts as a user against the twin, with random seeds and faults, in a fresh orb. Files an issue and a PR that adds a Given, When, Then scenario. Triage removes duplicates and assigns severity. The normal reviewed and CI-gated path merges or closes it |
 | Factory improvement | Daily | PR | Investigates invariant violations and ways to move Planned, Guarded, or Partial invariants to Enforced; reads implementing-agent session transcripts; measures token and cost efficiency, repeated tool work and failures, and other process friction; then maintains `docs/automations/factory-improvement/backlog.md`. It records sanitized process evidence only and never copies secrets or sensitive transcript content into the repo |
 | Loop health | Daily | Issue | Checks that no automation is paused and that every loop wrote its status line. Files an issue if either is false |

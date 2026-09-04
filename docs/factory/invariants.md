@@ -1,6 +1,6 @@
 # Invariant registry
 
-Factory-owned index. Implementing agents use routed guardrails; rationale and future design live in `PLAN.md`. The factory improver audits this file. Mark an invariant Enforced only with passing deterministic proof.
+Factory-owned index. Implementing agents use routed guardrails; rationale and future design live in `docs/PLAN.md`. The factory improver audits this file. Mark an invariant Enforced only with passing deterministic proof.
 
 **Enforced** blocks violations. **Partial** has incomplete checks. **Guarded** relies on review. **Planned** awaits implementation.
 
@@ -72,13 +72,13 @@ Factory-owned index. Implementing agents use routed guardrails; rationale and fu
 | INV-050 | Post-Phase-0 work runs in isolated mise-backed Amp orbs. | executor tests | Planned |
 | INV-051 | Exit codes, never models, decide deterministic gates. | gate tests | Partial |
 | INV-052 | Only validation orbs receive DMS and holdout credentials. | Amp controls, access spike | Enforced |
-| INV-053 | Specification expansion requires human merge. | human gates, branch controls | Guarded |
-| INV-054 | Publishing, destructive, paid-orb, and account actions require authority. | agent policy, human gates | Guarded |
+| INV-053 | Passing CI and a reviewer with no further feedback permits merge; factory changes also need current-head human approval. | workflow, Factory Approval check | Partial |
+| INV-054 | Publishing, destructive, paid-orb, and account actions require authority. | agent policy, authority controls | Guarded |
 | INV-055 | Transcript analysis stores only aggregate sanitized evidence. | runbook, review, gitleaks | Guarded |
 | INV-056 | Durable knowledge lives in repository docs. | operating-loop review | Guarded |
 | INV-057 | Gates get five fresh attempts; exhaustion halts; later attempts read prior mistakes. | controller tests | Planned |
 | INV-058 | Attempts branch; state persists; designated gates compare three attempts through an isolated reviewer. | recovery tests | Planned |
 | INV-059 | Loops follow runbooks, report status, never self-merge, and recover through webhooks. | loop-health checks | Partial |
-| INV-060 | Human-merged release PRs create tags; cargo-dist builds tested tags. | release workflows | Planned |
+| INV-060 | Explicitly authorized release PRs create tags; cargo-dist builds tested tags. | release workflows | Planned |
 | INV-061 | Actions use least privilege and immutable SHAs; crate publishing uses OIDC. | workflow policy | Partial |
 | INV-062 | Releases cover four targets and carry provenance. | cargo-dist workflow | Planned |

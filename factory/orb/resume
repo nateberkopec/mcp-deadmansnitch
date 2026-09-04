@@ -3,7 +3,7 @@ set -euo pipefail
 export PATH="$HOME/.local/bin:$PATH"
 command -v mise >/dev/null
 mise trust --yes
-mise install
-mise exec -- npm ci --prefix factory/amp/plugin
+command -v fish >/dev/null
 mise exec -- rustc --version
-mise exec -- cargo build -p deadmanssnitch-twin
+mise exec -- node factory/check.mjs
+mise exec -- npm --prefix factory/amp/plugin run typecheck

@@ -53,7 +53,7 @@ Completion criterion: the evidence covers retries, feedback, stale heads, confli
 - [ ] Run implementation, review, conflict-resolution, QA, bug-finding, factory-improvement, and maintenance roles through their repository-owned agent definitions.
 - [ ] Confirm every non-chief role uses `executor: "orb"`.
 - [ ] Confirm fresh orbs run `factory/orb/setup`, use pinned mise tools, and run `npm ci` for the factory plugin.
-- [ ] Confirm resumed orbs run `factory/orb/resume` and restore the same deterministic environment.
+- [ ] Confirm resumed orbs run `factory/orb/resume` and verify the prepared environment within Amp's ten-second wait, without reinstalling dependencies.
 - [ ] Run `bin/check-dev-env` from a clean orb.
 - [ ] Run `mise run linecount:factory` and `mise run linecount:projects` from a clean orb.
 - [ ] Import and typecheck the plugin from a clean orb.

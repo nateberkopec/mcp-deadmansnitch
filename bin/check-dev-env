@@ -80,12 +80,12 @@ if ! grep -q '^rust = "1.88.0"' mise.toml || ! grep -q '^channel = "1.88.0"' rus
   failures=$((failures + 1))
 fi
 
-if ! cargo metadata --no-deps --format-version 1 >/dev/null; then
+if ! mise exec -- cargo metadata --no-deps --format-version 1 >/dev/null; then
   printf '%s\n' 'FAILED: cargo metadata'
   failures=$((failures + 1))
 fi
 
-if ! hk config dump >/dev/null; then
+if ! mise exec -- hk config dump >/dev/null; then
   printf '%s\n' 'FAILED: hk config dump'
   failures=$((failures + 1))
 fi
@@ -97,7 +97,7 @@ for task in lint lint:secrets test build; do
   fi
 done
 
-if ! npm --prefix factory/amp/plugin run typecheck; then
+if ! mise exec -- npm --prefix factory/amp/plugin run typecheck; then
   printf '%s\n' 'FAILED: factory plugin typecheck'
   failures=$((failures + 1))
 fi

@@ -85,7 +85,6 @@ that this section does not list.
 | Pre-commit test scope | `test:fast` runs the unit tests and the in-process tool tests. The conformance tests, the binary contract test, and the scenarios run in CI only |
 | Coverage | Enforce 100% coverage on `deadmanssnitch` and on the twin's state machine. Elsewhere, use a ratchet, so that the coverage never decreases. Run `cargo mutants` weekly as report-only |
 | Scenario driver | The driver is the Amp SDK with `executor: 'orb'` and an `mcpConfig` that points at the server. The server points at the twin. An acting agent uses the server. A judge agent reads the transcript and the twin state dump. The judge agent runs in a separate fresh orb and cannot reach the implementation threads |
-| Inherited `.claude/` | Drop `settings.json` and both slash commands. The two commands become the first two scenarios |
 
 ### Release and distribution
 

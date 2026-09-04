@@ -2,31 +2,29 @@
 
 ## Repository work completed
 
-The Python-era tracked files and local caches were removed, the Rust/mise workspace was created with four scaffold crates, repository verifiers and routed documents were added, and the in-repo Amp factory plugin was created. The local `.env` key name was corrected without recording its value, and project-local hk pre-commit and commit-message hooks were installed.
+The repository left its fork network, all legacy tags and the `upstream` remote were removed, and the Python-era implementation and caches were replaced by the four-crate Rust/mise workspace. Repository-owned verifiers, routed documents, CI and release scaffolding, Amp orb lifecycle scripts, the factory plugin, automation runbooks, and the sanitized factory-improvement backlog are present. Code comments are prohibited by `AGENTS.md` and enforced by `bin/check-no-comments` locally, in hooks, and in CI.
+
+The accidentally tracked local `.env` was removed from Git history, its old object was pruned, and the preserved file is ignored and untracked. Secret values were never recorded in this report or orb output.
 
 ## Deterministic gates
 
-The local Phase 0 run passed `check-dev-env.fish`, `mise run lint`, `mise run test` (three smoke tests), `mise run lint:secrets`, release compilation, rustdoc with warnings denied, coverage execution, hk config loading, TypeScript typechecking, and workflow YAML parsing. `check-dev-env.fish` verifies required files, removed Python remnants, the shared toolchain pin, Cargo metadata, and hk configuration.
+`check-dev-env.fish`, `mise run lint`, `mise run test`, `mise run lint:secrets`, release compilation, rustdoc with warnings denied, coverage execution, hk configuration loading, factory-plugin TypeScript typechecking, workflow YAML parsing, and `git diff --check` pass. The three workspace smoke tests pass. CI passed for commit `923cff9` in [run 33827613358](https://github.com/nateberkopec/mcp-deadmansnitch/actions/runs/33827613358).
 
-## Account-side and destructive setup
+A fresh chief-of-staff orb given the repository instructions stated the operating loop and located `docs/reference/dms-api-v1.md` in [thread T-01a06a1b-4913-735e-b9b7-d4ef8317b30c](https://ampcode.com/threads/T-01a06a1b-4913-735e-b9b7-d4ef8317b30c).
 
-Completed: removed the `upstream` remote; deleted all local and origin legacy tags; created the private `nateberkopec/mcp-deadmansnitch-holdout` repository; and added `DEADMANSNITCH_API_KEY` as a GitHub Actions secret without displaying it.
+## Account-side setup
 
-Remaining:
-
-- Leave the GitHub fork network through GitHub Settings or Support.
-- Create the main and validation Amp projects, load the checked-in project plugin in an orb, and start the chief-of-staff agent.
-- Create a fine-grained token scoped to the holdout repository.
-- Add the DMS key as a secret only in the dedicated Amp validation project. DMS does not support exchanging Amp OIDC identity, so implementation orbs must remain in the separate main project.
-- Activate Dependabot, CI, release, webhook, and scheduled-automation settings after human review.
+The `dead-mans-mcp` Amp workspace contains separate main and validation projects. Only the validation project receives `DEADMANSNITCH_API_KEY` and the fine-grained holdout token. The private `nateberkopec/mcp-deadmansnitch-holdout` repository is not a fork, Amp can clone it, and its token is limited to that repository. The DMS key is also configured as a GitHub Actions secret without exposing its value. Publication and release activation remain reserved for their later human gates.
 
 ## Required spikes before Phase 1
 
-All four spikes remain pending because they require an Amp workspace, fresh orbs, account-side automation, or authorized secret delivery:
+All four spikes passed:
 
-1. Prove an orb pipeline blocks on a failing `mise run` gate and proceeds on a passing gate.
-2. Prove a runbook-wrapped automation recovers from deliberate failure without remaining paused, or select the webhook path.
-3. Prove the validation project's MCP configuration is available inside its orbs; current Amp ignores per-run SDK `mcpConfig` during orb execution.
-4. Prove an authorized validation orb can reach the live DMS API through Amp project-secret delivery without exposing the key.
+1. The factory plugin blocked after a deliberate failing gate and proceeded after a passing gate in [thread T-01a06a0a-b843-7490-a61d-f5bac588e86d](https://ampcode.com/threads/T-01a06a0a-b843-7490-a61d-f5bac588e86d).
+2. The durable `factory-health` webhook was registered as the recovery path for paused Amp schedules in [thread T-01a06a17-9d40-7041-85c0-faf74b204282](https://ampcode.com/threads/T-01a06a17-9d40-7041-85c0-faf74b204282).
+3. An orb in the validation project invoked the project-level `phase-zero-test` MCP server successfully in [thread T-01a06a27-b7c0-73be-a7e5-19adb62bc242](https://ampcode.com/threads/T-01a06a27-b7c0-73be-a7e5-19adb62bc242).
+4. The same validation orb received a non-empty DMS secret, received HTTP 200 from the live snitches endpoint, and verified that the body was a JSON array. It also received the holdout token, received HTTP 200 from the private repository endpoint, and matched the expected repository identity. Only statuses and booleans were reported.
 
-No live API was contacted and no secret value was read into output. Commit `8e7e989`, which briefly tracked `.env`, was amended as `bf4c2a4`; its reflog was expired and the old object was pruned. The local file is preserved, ignored, and untracked. Rotate the credential if it was exposed anywhere outside this local history. Orb hours: 0; all work in this report was local Phase 0 repository scaffolding.
+Amp did not provide billed usage for these threads. Wall-clock thread lifetimes are recorded as the available proxy: gate spike 0.13 hours, webhook spike 0.06 hours, chief-of-staff verification 0.02 hours, and validation access spike 0.23 hours, totaling 0.44 hours.
+
+Phase 0 is complete. Phases 1 through 6 remain intentionally unimplemented.

@@ -69,16 +69,16 @@ Factory-owned index. Implementing agents use routed guardrails; rationale and fu
 
 | ID | Invariant | Proof | Status |
 |---|---|---|---|
-| INV-050 | Post-Phase-0 work runs in isolated mise-backed Amp orbs. | executor tests | Planned |
+| INV-050 | Each issue has one mise-backed implementation worker; reviews and conflict resolution use fresh isolated orbs. | executor tests | Planned |
 | INV-051 | Exit codes, never models, decide deterministic gates. | gate tests | Partial |
-| INV-052 | Only validation orbs receive DMS and holdout credentials. | Amp controls, access spike | Enforced |
-| INV-053 | Passing CI and a reviewer with no further feedback permits merge; after activation, factory changes also need an owner-signed current head. | merge workflow, final activation gate | Planned |
+| INV-052 | Main receives no DMS credentials; twin validation receives only the DMS test key; holdout validation receives only its repository token. | Amp project controls | Enforced |
+| INV-053 | Passing CI and a current-head reviewer with no further feedback permits merge; after activation, factory changes also need an owner-signed current head. | merge workflow, final activation gate | Planned |
 | INV-054 | Publishing, destructive, paid-orb, and account actions require authority. | agent policy, authority controls | Guarded |
 | INV-055 | Transcript analysis stores only aggregate sanitized evidence. | runbook, review, gitleaks | Guarded |
 | INV-056 | Durable knowledge lives in repository docs. | operating-loop review | Guarded |
-| INV-057 | Gates get five fresh attempts; exhaustion halts; later attempts read prior mistakes. | controller tests | Planned |
-| INV-058 | Attempts branch; state persists; designated gates compare three attempts through an isolated reviewer. | recovery tests | Planned |
-| INV-059 | Loops follow runbooks, report status, never self-merge, and recover through webhooks. | loop-health checks | Partial |
+| INV-057 | A worker gets five attempts; exhaustion halts; later attempts read prior mistakes. | controller tests | Planned |
+| INV-058 | The chief creates issues only when capacity exists; GitHub state survives interruption; changed heads repeat CI and review. | recovery tests | Planned |
+| INV-059 | Loops follow runbooks, report status, never self-merge, and recover after failure. | loop-health checks | Planned |
 | INV-060 | Explicitly authorized release PRs create tags; cargo-dist builds tested tags. | release workflows | Planned |
 | INV-061 | Actions use least privilege and immutable SHAs; crate publishing uses OIDC. | workflow policy | Partial |
 | INV-062 | Releases cover four targets and carry provenance. | cargo-dist workflow | Planned |

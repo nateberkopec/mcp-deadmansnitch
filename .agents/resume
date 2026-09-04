@@ -1,8 +1,1 @@
-#!/usr/bin/env bash
-set -euo pipefail
-export PATH="$HOME/.local/bin:$PATH"
-command -v mise >/dev/null
-mise trust --yes
-mise install
-mise exec -- rustc --version
-mise exec -- cargo build -p deadmanssnitch-twin
+../factory/orb/resume

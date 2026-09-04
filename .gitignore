@@ -1,5 +1,6 @@
 /target/
 /tmp/
+/TODO
 node_modules/
 .env
 *.profraw

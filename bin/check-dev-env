@@ -22,8 +22,8 @@ paths=(
   CLAUDE.md
   docs/ARCHITECTURE.md
   docs/PLAN.md
-  docs/factory/readme.md
-  docs/factory/invariants.md
+  factory/readme.md
+  factory/invariants.md
   CONTRIBUTING.md
   LICENSE
   CHANGELOG.md
@@ -33,8 +33,8 @@ paths=(
   docs/history/README.md
   docs/history/phase-0-plan.md
   docs/history/phase-0-report.md
-  docs/automations/factory-improvement/runbook.md
-  docs/automations/factory-improvement/backlog.md
+  factory/automations/factory-improvement/runbook.md
+  factory/automations/factory-improvement/backlog.md
   .agents/setup
   .agents/resume
   .amp/plugins/factory/index.ts
@@ -46,15 +46,15 @@ for path in "${paths[@]}"; do
 done
 
 for crate in deadmanssnitch mcp-deadmanssnitch deadmanssnitch-twin deadmanssnitch-conformance; do
-  require_path "crates/$crate/Cargo.toml"
+  require_path "$crate/Cargo.toml"
 done
 
 for guard in rust-code testing-and-proof tool-contract-stability errors-and-retries dependencies twin-fidelity; do
-  require_path "docs/guardrails/$guard.md"
+  require_path "factory/guardrails/$guard.md"
 done
 
 for runbook in twin-drift dependency-sweep release security-red-team doc-drift coverage-ratchet flake-hunter refactor qa-explorer loop-health; do
-  require_path "docs/automations/$runbook.md"
+  require_path "factory/automations/$runbook.md"
 done
 
 for removed in .python-version .pre-commit-config.yaml .envrc .claude; do
@@ -81,6 +81,23 @@ fi
 
 if ! hk config dump >/dev/null; then
   printf '%s\n' 'FAILED: hk config dump'
+  failures=$((failures + 1))
+fi
+
+for task in lint lint:secrets test build; do
+  if ! mise run "$task"; then
+    printf 'FAILED: mise run %s\n' "$task"
+    failures=$((failures + 1))
+  fi
+done
+
+if ! npm --prefix factory/plugin run typecheck; then
+  printf '%s\n' 'FAILED: factory plugin typecheck'
+  failures=$((failures + 1))
+fi
+
+if ! git diff --check || ! git diff --cached --check; then
+  printf '%s\n' 'FAILED: git diff check'
   failures=$((failures + 1))
 fi
 

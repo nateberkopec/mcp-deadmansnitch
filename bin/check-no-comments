@@ -4,7 +4,7 @@ set -l slash_files (rg --files --hidden -g '*.rs' -g '*.ts' -g '*.js' -g '*.pkl'
 set -l hash_files (rg --files --hidden -g '*.toml' -g '*.yml' -g '*.yaml' -g '*.fish' -g '*.sh' -g '*.bash')
 set -l markup_files (rg --files --hidden -g '*.html' -g '*.xml' -g '*.svg')
 for file in (git ls-files --cached --others --exclude-standard)
-    if test -x $file
+    if test -f $file; and test -x $file
         set -a hash_files $file
     end
 end

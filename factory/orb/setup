@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -euo pipefail
+export PATH="$HOME/.local/bin:$PATH"
+if ! command -v mise >/dev/null 2>&1; then
+  curl --proto '=https' --tlsv1.2 -fsSL https://mise.run | MISE_VERSION=v2026.8.14 sh
+fi
+mise trust --yes
+mise install
+mise exec -- npm ci --prefix factory/plugin
+mise exec -- cargo fetch --locked
+mise exec -- cargo build -p deadmanssnitch-twin

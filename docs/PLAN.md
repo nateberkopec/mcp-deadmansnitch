@@ -62,16 +62,16 @@ that this section does not list.
 | Decision | Choice |
 |---|---|
 | Factory plane | The factory plane is Amp. Orbs are the only execution environment for implementation, review, judging, QA, and the background loops. Reuse nothing from sfactory |
-| Operator interface | Puck reports, routes questions, launches work, monitors agents, and summarizes results. It replaces any separate coordinator thread but not the checked-in factory plugin, which owns deterministic workflow policy. No one writes or tests code on the local machine |
-| Isolation | Use one fresh orb for each attempt, each review, each judgment, and each loop run. `.agents/setup` installs the mise toolchain, warms the cargo cache, and builds the twin. Amp makes a snapshot of the orb for reuse. `.agents/resume` checks the toolchain again |
-| Secrets in orbs | Use Amp OIDC workload identity for services that support federation. DMS does not, so keep its static key as a secret in a dedicated Amp validation project used only by the drift loop and QA explorer; implementation orbs use the main project and never receive it |
-| Workflows | The plugin is TypeScript and is checked in at `.amp/plugins/factory/`. Phases 1 through 5 are pipeline functions. The gates are `amp.$` shell steps. The exit code decides whether the pipeline continues, and the model never runs a gate. Attempt budgets, parallel attempts, merge policy, and approval checks are code. Each attempt pushes a branch. The plugin records the workflow state in the repo, because Amp has no checkpoint and no resume |
-| Model and provider | Deferred. The plugin exposes model and effort as parameters of each step. This stage makes no choice |
-| Attempt budget | Allow five attempts for each gate, each in a fresh orb, from the last commit that passed. Then halt and write a report. The report gives what the attempts tried, what failed, and the reviewer's last verdict. Attempt three and each later attempt must read the docs/MISTAKES.md entries from the earlier attempts |
-| Parallel attempts | For the twin state machine and for the HTTP-plus-conformance gate, run three attempts in parallel orbs. A code step makes a table with one row for each attempt. The table gives the lines of code from `tokei`, the clippy cognitive complexity, the test count, the coverage, and the gate results. A reviewer agent in a fresh orb selects the winner and must cite the table. Keep the losing branches for one week, then delete them |
-| Merge policy | Merge a pull request as soon as CI passes and an independent reviewer has no further feedback. After factory activation, factory changes additionally require an owner-signed current head. Publishing and account changes still require explicit authority |
+| Operator interface | Puck launches and monitors a chief-of-staff agent, routes questions, and summarizes results. The chief compares `HEAD` with this plan, creates work just in time, and shepherds it. No one writes or tests code on the local machine |
+| Isolation | Give each issue one implementation worker in its own orb. Use fresh orbs for review, judgment, conflict resolution, and loops. `.agents/setup` installs the pinned mise toolchain; `.agents/resume` verifies it |
+| Secrets in orbs | The main project has no DMS credentials. Twin validation receives only the DMS test key. Holdout validation receives only its repository token and reaches DMS behavior through the twin |
+| Workflows | `factory/plugin/` implements one generic issue lifecycle. The chief of staff alone uses phases as planning guidance; phase names and transitions are not workflow state. GitHub issues, branches, pull requests, reviews, and checks provide durable state. Deterministic commands and CI decide mechanical gates |
+| Model and provider | Deferred. Agent roles do not hard-code a model |
+| Attempt budget | Give a worker five attempts to clear failed checks or review findings. Then halt that issue with a report of attempts, failures, and the latest review. Later attempts read relevant entries in `docs/MISTAKES.md` |
+| Parallel work | The chief creates independent issues only while capacity exists. One worker owns each issue. It does not create speculative duplicate implementations |
+| Merge policy | Merge a current, conflict-free pull request after CI passes and an independent reviewer has no further feedback on that head. A conflict resolver merges current `main`; the changed head repeats CI and review. After factory activation, factory changes additionally require an owner-signed current head. Publishing and account changes still require explicit authority |
 | Factory activation | Keep branch protection and the owner-signature gate disabled while the factory is under active construction. Installing them is the final preflight before the human says go and unattended Phase 1–5 execution begins |
-| Work queue | The work queue is GitHub issues. A human sets a label to mark an issue approved. The plugin's webhook launches an implementation thread on that label |
+| Work queue | The chief creates GitHub issues from the gap between `HEAD` and this plan only when a worker slot is available. Each issue is one independently mergeable unit and one implementation worker; no exhaustive issue backlog is created in advance |
 | Cost tracking | Each run report records the orb hours for each gate and for each loop |
 
 ### Harness and process
@@ -82,7 +82,7 @@ that this section does not list.
 | MCP SDK | Pin `rmcp` to `=3.2.x`. Enable the features `server, macros, transport-io, schemars, elicitation, transport-streamable-http-server` |
 | Worker | The worker is Amp's agent. Hold it constant, as Lopopolo's fixed-worker thesis says. AGENTS.md is the source of truth, and Amp reads it natively. `CLAUDE.md` is an `@AGENTS.md` shim for a person who runs Claude Code locally. Use no skills. The routed docs hold everything that a skill would teach. Requalify the harness each time the worker changes |
 | Code comments | Code comments are prohibited in every source format. Shebangs are executable metadata, not comments. Put rationale in names, types, tests, attributes, or routed documentation, and enforce the rule with the repo-owned comment linter |
-| Dev-env standard | Applied. `mise.toml` supplies the tasks `test`, `test:fast`, `lint` (fan-out, including the comment linter), `lint:secrets`, `build`, and `serve`. Each task is a one-line wrapper around the exact `cargo` command that `CONTRIBUTING.md` documents. The `hk.pkl` pre-commit hook runs lint, secrets, and `test:fast`. A `commit-msg` step enforces conventional commits. `serve` starts the twin and the server in HTTP mode. `bin/check-dev-env` verifies the repository development environment, and its failures are the worklist |
+| Dev-env standard | Applied. `mise.toml` owns the development tasks. `bin/check-dev-env` runs the complete required check set, and `mise run serve` starts the twin and server. `CONTRIBUTING.md` exposes only those two interfaces. The `hk.pkl` hooks enforce fast pre-commit checks and conventional commits |
 | Task runner | Use nothing beyond cargo and mise for task orchestration. Keep small fish scripts for cross-process workflows and repo-owned policy checks, including scenarios, commit messages, and the no-comments invariant. Wrappers print the commands that they run |
 | Pre-commit test scope | `test:fast` runs the unit tests and the in-process tool tests. The conformance tests, the binary contract test, and the scenarios run in CI only |
 | Coverage | Enforce 100% coverage on `deadmanssnitch` and on the twin's state machine. Elsewhere, use a ratchet, so that the coverage never decreases. Run `cargo mutants` weekly as report-only |
@@ -152,8 +152,8 @@ synthesizes the code. Tests prove the equivalence.
 constant." This project uses these moves, and each one produces an artifact:
 
 - AGENTS.md is the map. It states what the repo is, the operating loop, the golden-path workflows, and the links. `CLAUDE.md` is `@AGENTS.md` plus host notes.
-- `docs/ARCHITECTURE.md` is a stable codemap. It gives the modules, boundaries, and dependency direction and holds no version literals. `docs/factory/invariants.md` is the factory-owned registry of invariants and their enforcement status; implementing agents use routed guardrails instead.
-- The guardrails are themed documents in `docs/guardrails/`. When a PR violates a guardrail, that same PR updates it.
+- `docs/ARCHITECTURE.md` is a stable codemap. It gives the modules, boundaries, and dependency direction and holds no version literals. `factory/invariants.md` is the factory-owned registry of invariants and their enforcement status; implementing agents use routed guardrails instead.
+- The guardrails are themed documents in `factory/guardrails/`. When a PR violates a guardrail, that same PR updates it.
 - "If it matters, it belongs in a verifier owned by the repo." Each recurring correction becomes a type, a lint, a test, or a document, in that order. Section 6 lists the verifiers.
 - Parse at the boundary. Make illegal states impossible to represent. Use a newtype for `Token`. Use closed enums for `Status` and `Interval`, each with an `Unknown` variant. Let no `serde_json::Value` pass the decode boundary.
 - Tool results are quiet on success. Their structure is bounded and stable. An error names the invariant that it violated and gives a recovery action. A mutation returns a receipt.
@@ -322,7 +322,7 @@ the tests do not sleep.
 - Supply chain: `deny.toml` checks the advisories, permits MIT and Apache-2.0 plus the Unicode-3.0 data license required by rmcp's URL stack, and permits no duplicate versions except the required syn 2/syn 3 split. It permits known registries only. Dependabot runs as section 0 says. The actions are pinned by SHA. The default workflow permissions are read-only. Publishing uses OIDC trusted publishing.
 - The compatibility surfaces, from the strictest to the least strict, are the tool names and argument schemas, the `structuredContent` shapes, the CLI flags and env vars, and the MCP spec revisions served. A change to a tool name or an argument schema is a semver-major change. The `deadmanssnitch` library has its own semver gate.
 
-## 4. Digital twin design (`crates/deadmanssnitch-twin`)
+## 4. Digital twin design (`deadmanssnitch-twin`)
 
 The twin is a separate crate. It shares no code with `deadmanssnitch` and no
 code with the server. Some things are needed in both places, such as the
@@ -356,7 +356,7 @@ The store is in memory. The token generator uses a seed and produces 10
 lowercase hex characters. The clock is frozen. `reset` runs between the
 scenarios.
 
-### 4.4 Differential conformance suite (`crates/deadmanssnitch-conformance`)
+### 4.4 Differential conformance suite (`deadmanssnitch-conformance`)
 
 The suite is a binary and a test module. It runs a fixed script of requests
 against a pair of base URLs. The script does these steps: create; read; list
@@ -368,7 +368,7 @@ pending snitch. The suite records the responses in a normalized form, and it
 masks the volatile fields: the token, `href`, the timestamps, `x-request-id`,
 `x-runtime`, and the rate-limit counters. The suite has two modes:
 
-- `--target twin` runs on every CI job. The suite compares the recorded output with the checked-in golden master `crates/deadmanssnitch-conformance/golden/live.json`.
+- `--target twin` runs on every CI job. The suite compares the recorded output with the checked-in golden master `deadmanssnitch-conformance/golden/live.json`.
 - `--target live` is opt-in. It needs `DEADMANSNITCH_API_KEY` from the dedicated test account. It creates its own snitches with the name prefix `mcp-conformance-` and remembers their tokens in memory. At the end of the same run, it deletes only those tokens. If the account already contains snitches with that prefix from an earlier run, the suite stops before it creates anything and reports them, and a human deletes them. The suite never lists snitches and then deletes them. It never modifies a snitch that it did not create. It honors the check-in rate limit. It runs weekly on a schedule and also on a manual dispatch. If there is a diff, the suite opens an issue and attaches the normalized diff.
 
 The golden master comes from the first live run, which happens after the plan
@@ -392,10 +392,10 @@ synthesizes the code.
 | `ni-c/healthchecks-mcp` (closest domain analogue) | Startup without a key, so that listing works; a server-side `limit` plus a total, because the upstream list has no pages; a 100 KB result cap; the "untrusted content" framing; `delete` gated by elicitation; `pause` deliberately ungated. |
 | `neondatabase/mcp-server-neon` | Long workflow text in the tool result, not in the description; the "NEVER run autonomously" wording for a destructive tool; a file snapshot of the full `tools/list`. |
 | `dinglebear-ai/rtailscale` | The README sections "Capabilities and Boundaries" and "Safety and Trust Model". |
-| `artichoke/rand_mt` (Lopopolo's harnessed Rust crate) | The shape of `AGENTS.md` and the operating loop; `docs/guardrails/*`; the `docs/automations/*` runbooks; the crate-root lint block; `deny.toml`; `mise.toml`; a CI matrix with `RUSTFLAGS=-D warnings`, an MSRV job, and a doc job that denies broken links; SHA-pinned actions; a Dependabot cooldown; an OIDC publish that is gated on CI. |
+| `artichoke/rand_mt` (Lopopolo's harnessed Rust crate) | The shape of `AGENTS.md` and the operating loop; `factory/guardrails/*`; the `factory/automations/*` runbooks; the crate-root lint block; `deny.toml`; `mise.toml`; a CI matrix with `RUSTFLAGS=-D warnings`, an MSRV job, and a doc job that denies broken links; SHA-pinned actions; a Dependabot cooldown; an OIDC publish that is gated on CI. |
 | `modelcontextprotocol/rust-sdk/.github/workflows/conformance.yml` | The recipe for running the official conformance suite against an HTTP server in CI, with an expected-failures baseline. |
 | `joshrotenberg/cratesio-mcp` | release-plz feeding cargo-dist, which feeds a GHCR image; the library and binary split, with a library-only CI job. |
-| Amp docs: plugin API, orbs, agent-to-agent, automations, event-driven orbs | `createAgent` and `agent.run({executor: 'orb'})` as the workflow primitives; `amp.$` for the gates; `.agents/setup` and `.agents/resume`; `createWebhook` for the issue-label trigger; the schedule semantics, which include pause-on-failure. |
+| Amp docs: plugin API, orbs, agent-to-agent, automations, event-driven orbs | `createAgent` and `agent.run({executor: 'orb'})` as the workflow primitives; `amp.$` for the gates; `.agents/setup` and `.agents/resume`; `createWebhook` for durable wake-up events; the schedule semantics, which include pause-on-failure. |
 
 ## 6. Harness: repo-owned verifiers and documents
 
@@ -405,9 +405,9 @@ synthesizes the code.
 AGENTS.md                 map: what, why, operating loop, golden paths, links
 CLAUDE.md                 @AGENTS.md shim
 docs/ARCHITECTURE.md           codemap and boundaries (no version literals)
-docs/factory/readme.md        factory structure and operating model
-docs/factory/invariants.md     factory-owned invariant and enforcement registry
-CONTRIBUTING.md           setup, direct cargo commands, proof expectations
+factory/readme.md        factory structure and operating model
+factory/invariants.md     factory-owned invariant and enforcement registry
+CONTRIBUTING.md           development check and server entry points
 docs/PLAN.md              this file
 CHANGELOG.md              maintained by release-plz
 LICENSE                   MIT, both copyright lines
@@ -416,19 +416,19 @@ deny.toml  mise.toml  hk.pkl  .gitleaks.toml  rustfmt.toml  clippy.toml
 release-plz.toml  dist-workspace.toml  server.json
 .env.example              DEADMANSNITCH_API_KEY=
 .agents/setup  .agents/resume            orb setup and wake scripts
-.amp/plugins/factory/     workflow orchestrator: phases, gates, attempts, webhook, loops
+factory/plugin/            issue workflow and chief launcher
 .github/workflows/{ci,audit,conformance,twin-drift,release,release-plz}.yml  dependabot.yml
-crates/deadmanssnitch/             typed client + domain types (library, published)
-crates/mcp-deadmansnitch/          binary: config, mcp/{server,tools,resources,prompts,completions}, http
-crates/deadmanssnitch-twin/        simulator binary + library
-crates/deadmanssnitch-conformance/ differential suite + golden/
+deadmanssnitch/             typed client + domain types (library, published)
+mcp-deadmansnitch/          binary: config, mcp/{server,tools,resources,prompts,completions}, http
+deadmanssnitch-twin/        simulator binary + library
+deadmanssnitch-conformance/ differential suite + golden/
 scenarios/                Given, When, Then scenario files (section 7.3)
 bin/scenarios             fish wrapper for the scenario runner; prints what it runs
 docs/reference/           dms-api-v1.md, mcp-2026-07-28.md
-docs/guardrails/          rust-code, testing-and-proof, tool-contract-stability, errors-and-retries, dependencies, twin-fidelity
-docs/automations/         one runbook per loop (section 9)
+factory/guardrails/          rust-code, testing-and-proof, tool-contract-stability, errors-and-retries, dependencies, twin-fidelity
+factory/automations/         one runbook per loop (section 9)
 docs/reference/donors.md
-docs/automations/factory-improvement/
+factory/automations/factory-improvement/
   runbook.md                     daily factory-improvement loop instructions
   backlog.md                     sanitized prioritized backlog owned by that loop
 docs/history/                    dated, non-authoritative records
@@ -530,7 +530,7 @@ Each active phase ends at a gate that a machine can check and is driven by the w
 
 ### Phase 4: Streamable HTTP and official conformance
 
-- Add `StreamableHttpService` in axum, a loopback default, `--allow-remote` with a mandatory token, Origin and Host validation, and `/health`. This is a parallel-attempt gate (section 0).
+- Add `StreamableHttpService` in axum, a loopback default, `--allow-remote` with a mandatory token, Origin and Host validation, and `/health`. Implement it as one independently mergeable unit.
 - Run the official conformance suite in CI on 2026-07-28 (gating) and on 2025-11-25 (report-only), with an expected-failures baseline.
 - Gate: the baseline entries are auth-only, and each one carries a justification. The HTTP tests run through `tower::ServiceExt::oneshot`.
 
@@ -549,7 +549,7 @@ Each active phase ends at a gate that a machine can check and is driven by the w
 - README: the pitch and the transport statement, the install steps, the client config snippets (generic and Claude Code), the flag and env table with the precedence, the generated tools table with read-only and destructive markers, the read-only mode, the safety and trust model, the development notes, and the credit line.
 - Gate: a tagged release installs on this Mac through the shell installer and passes the Inspector smoke test. The README config works end to end.
 
-## 9. Background loops (`docs/automations/`)
+## 9. Background loops (`factory/automations/`)
 
 Each loop is an Amp automation on a sleeping orb. Each loop has a runbook. The
 runbook states the condition that should remain true, the drift signal, the
@@ -569,5 +569,5 @@ status line that the loop-health loop reads. Each loop that changes anything ope
 | Flake hunter | Weekly | Issue | Reruns the suite N times. It files anything nondeterministic as an infrastructure bug |
 | Refactor | Continuous | PR | Has one mission: fewer lines of code. Merges after CI passes, coverage holds, line count drops, and an independent reviewer has no further feedback |
 | QA explorer | Continuous | Issue plus PR | Acts as a user against the twin, with random seeds and faults, in a fresh orb. Files an issue and a PR that adds a Given, When, Then scenario. Triage removes duplicates and assigns severity. The normal reviewed and CI-gated path merges or closes it |
-| Factory improvement | Daily | PR | Investigates invariant violations and ways to move Planned, Guarded, or Partial invariants to Enforced; reads implementing-agent session transcripts; measures token and cost efficiency, repeated tool work and failures, and other process friction; then maintains `docs/automations/factory-improvement/backlog.md`. It records sanitized process evidence only and never copies secrets or sensitive transcript content into the repo |
+| Factory improvement | Daily | PR | Investigates invariant violations and ways to move Planned, Guarded, or Partial invariants to Enforced; reads implementing-agent session transcripts; measures token and cost efficiency, repeated tool work and failures, and other process friction; then maintains `factory/automations/factory-improvement/backlog.md`. It records sanitized process evidence only and never copies secrets or sensitive transcript content into the repo |
 | Loop health | Daily | Issue | Checks that no automation is paused and that every loop wrote its status line. Files an issue if either is false |

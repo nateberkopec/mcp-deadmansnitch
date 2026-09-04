@@ -1,6 +1,6 @@
 # Dead Man's Snitch API v1: observed contract
 
-This document is the contract. The digital twin (`crates/dms-twin`) must
+This document is the contract. The digital twin (`deadmanssnitch-twin`) must
 reproduce it, and the differential conformance suite asserts it. The document
 merges the official docs with these sources: live probes from 2026-09-03, the
 official `snitcher` Ruby gem (v0.4.2), the Terraform provider, two community

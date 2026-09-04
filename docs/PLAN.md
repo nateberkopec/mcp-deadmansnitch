@@ -52,9 +52,9 @@ that this section does not list.
 |---|---|
 | Twin fidelity | The twin has a clock-driven status machine. It does more than CRUD |
 | Test double | The twin is the only HTTP double. Use no wiremock and no cassettes. The twin does the fault injection |
-| Live API contact | Only the differential conformance suite touches the live API. That suite is opt-in and runs weekly |
+| Live API contact | The factory-owned DMS test key is a twin-development credential used only by the twin differential suite. Client, MCP, scenario, QA, holdout, review, and release work never receives it |
 | Live safety | The suite deletes only the tokens that it created in the same run, and it keeps those tokens in memory. It never lists snitches and then deletes them by name prefix. If it finds leftovers from an earlier run, it stops and reports them, and a human cleans up. It never changes or deletes anything that already exists in the account |
-| Plan headroom | The upgrade of the account is in progress, and the golden run waits for it. Build the twin from `docs/reference/dms-api-v1.md` first. Reconcile the twin with the golden file afterward |
+| Test account capacity | The account has functionally unlimited snitches and rate limit. Differential runs remain bounded, clean up their own records, and do not treat privileged capacity as evidence for ordinary quota behavior |
 | Holdouts | The holdouts are in the private repo `nateberkopec/mcp-deadmansnitch-holdout`. Only the validate step clones it, with a fine-grained token whose scope is that repo |
 
 ### Factory plane
@@ -86,7 +86,7 @@ that this section does not list.
 | Task runner | Use nothing beyond cargo and mise for task orchestration. Keep small fish scripts for cross-process workflows and repo-owned policy checks, including scenarios, commit messages, and the no-comments invariant. Wrappers print the commands that they run |
 | Pre-commit test scope | `test:fast` runs the unit tests and the in-process tool tests. The conformance tests, the binary contract test, and the scenarios run in CI only |
 | Coverage | Enforce 100% coverage on `deadmanssnitch` and on the twin's state machine. Elsewhere, use a ratchet, so that the coverage never decreases. Run `cargo mutants` weekly as report-only |
-| Scenario driver | The driver is the Amp SDK with `executor: 'orb'`. Because Amp ignores per-run `mcpConfig` for orb execution, the validation project's MCP configuration points at the server, and the server points at the twin. An acting agent uses the server. A judge agent reads the transcript and the twin state dump. The judge agent runs in a separate fresh orb and cannot reach the implementation threads |
+| Scenario driver | The driver is the Amp SDK with `executor: 'orb'`. The holdout-validation project's MCP configuration points at the server, and the server points at the twin. Acting and judge agents never receive the factory-owned DMS key. The judge reads the transcript and twin state dump in a separate fresh orb and cannot reach implementation threads |
 
 ### Release and distribution
 
@@ -369,11 +369,9 @@ masks the volatile fields: the token, `href`, the timestamps, `x-request-id`,
 `x-runtime`, and the rate-limit counters. The suite has two modes:
 
 - `--target twin` runs on every CI job. The suite compares the recorded output with the checked-in golden master `deadmanssnitch-conformance/golden/live.json`.
-- `--target live` is opt-in. It needs `DEADMANSNITCH_API_KEY` from the dedicated test account. It creates its own snitches with the name prefix `mcp-conformance-` and remembers their tokens in memory. At the end of the same run, it deletes only those tokens. If the account already contains snitches with that prefix from an earlier run, the suite stops before it creates anything and reports them, and a human deletes them. The suite never lists snitches and then deletes them. It never modifies a snitch that it did not create. It honors the check-in rate limit. It runs weekly on a schedule and also on a manual dispatch. If there is a diff, the suite opens an issue and attaches the normalized diff.
+- `--target live` is the sole consumer of the factory-owned `DEADMANSNITCH_API_KEY`. It runs only in twin-validation to build or verify the twin. It creates bounded batches of its own snitches with the name prefix `mcp-conformance-` and remembers their tokens in memory. At the end of the same run, it deletes only those tokens. If leftovers exist, it stops before creating anything and reports them for human cleanup. It never lists and deletes snitches or modifies records it did not create. It does not infer ordinary quota behavior from the privileged account. It runs weekly and by manual dispatch. A diff opens an issue with the normalized diff.
 
-The golden master comes from the first live run, which happens after the plan
-upgrade for the account lands. The twin is not done until it matches the golden
-master.
+The golden master comes from the first live twin-development run. The twin is not done until it matches the golden master.
 
 ## 5. Gene transfusion: donors and the genes to take
 
@@ -494,8 +492,8 @@ says this, then these tool calls happened and the twin ends in this state.
 Those are hard assertions, and the runner checks them mechanically. The judge
 then finds these other things, which are soft assertions. The runner
 (`bin/scenarios`) starts the twin. It then starts the server pointed at the
-twin. It then calls the Amp SDK with an orb executor in the validation project,
-whose project-level MCP configuration points at the server. The acting agent's transcript and a twin state dump go to a judge agent
+twin. It then calls the Amp SDK with an orb executor in holdout-validation,
+whose project-level MCP configuration points at the server and which has no DMS key. The acting agent's transcript and a twin state dump go to a judge agent
 in a separate fresh orb. The scenarios are seeded from the old repo's two slash
 commands and from the Python test suite. Examples are: set up a daily backup
 monitor; find why a snitch is failing; pause everything tagged `staging` for
@@ -514,7 +512,7 @@ Each active phase ends at a gate that a machine can check and is driven by the w
 ### Phase 1: twin and differential suite
 
 - Build the twin per section 4, with unit tests for the state machine and for every documented response. The state machine is a parallel-attempt gate (section 0).
-- Build the differential suite. If the plan upgrade has landed, run the suite once live to produce the golden master, and iterate the twin until the diff is empty. If it has not landed, build to the reference document and add "reconcile with golden" as the first task of Phase 2.
+- Build the differential suite, run it live from twin-validation to produce the golden master, and iterate the twin until the diff is empty. The factory-owned live key is used for no other purpose.
 - Gate: the differential suite is green against the twin. The twin tests cover every row of sections 3, 4, and 5 of the API reference. The one-minute build-and-test bound is measured and recorded.
 
 ### Phase 2: typed client (`deadmanssnitch`)

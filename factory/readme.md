@@ -33,4 +33,4 @@ Most changes merge after CI passes and an independent reviewer has no further fe
 - `factory/invariants.md` records factory-owned enforcement.
 - `deadmanssnitch/`, `mcp-deadmanssnitch/`, `deadmanssnitch-twin/`, and `deadmanssnitch-conformance/` are the product projects.
 
-The main Amp project has no DMS credentials. Twin validation receives only the DMS test key. Holdout validation receives only its repository token and tests through the twin.
+The main Amp project has no DMS credentials. Twin validation receives only the DMS test key. Holdout validation receives only its repository token and tests through the twin. The privileged DMS account has functionally unlimited capacity, but differential runs remain bounded and self-cleaning.

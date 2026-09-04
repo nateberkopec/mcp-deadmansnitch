@@ -57,7 +57,7 @@ Factory-owned index. Implementing agents use routed guardrails; rationale and fu
 
 | ID | Invariant | Proof | Status |
 |---|---|---|---|
-| INV-040 | Ordinary tests use the twin; live calls are explicit validation. | isolation, CI | Enforced |
+| INV-040 | Only twin differential runs use the factory-owned DMS key; all other tests use the twin. | project isolation, CI | Partial |
 | INV-041 | Twin fidelity includes awkward statuses and legacy fields without shared code. | differential cases, holdouts | Planned |
 | INV-042 | Frozen time, seeded tokens, and reset state make scenarios repeatable. | repeatability tests | Planned |
 | INV-043 | Proof matches the changed layer; skipped proof is reported. | testing guardrail, review | Guarded |

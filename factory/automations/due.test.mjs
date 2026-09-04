@@ -58,6 +58,15 @@ test("explicit dispatch rejects an unknown automation", () => {
   assert.match(result.stderr, /unknown automation: unknown/);
 });
 
+for (const automation of ["constructor", "toString", "__proto__"]) {
+  test(`explicit dispatch rejects inherited property ${automation}`, () => {
+    const result = run({ now: "2026-11-02T12:30:00.000Z", automation });
+    assert.notEqual(result.status, 0);
+    assert.equal(result.stdout, "");
+    assert.match(result.stderr, new RegExp(`unknown automation: ${automation}`));
+  });
+}
+
 test("an invalid NOW fails clearly", () => {
   const result = run({ now: "definitely-not-a-clock" });
   assert.notEqual(result.status, 0);

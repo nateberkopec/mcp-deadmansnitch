@@ -21,7 +21,7 @@ const scheduled = Object.entries(config.automations)
   })
   .map(([name]) => name);
 const requested = process.env.AUTOMATION;
-if (requested && !config.automations[requested]) {
+if (requested && !Object.hasOwn(config.automations, requested)) {
   throw new Error(`unknown automation: ${requested}`);
 }
 console.log(JSON.stringify(requested ? [requested] : scheduled));

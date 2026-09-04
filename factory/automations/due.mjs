@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 
 const config = JSON.parse(readFileSync(new URL("./config.json", import.meta.url), "utf8"));
 const now = new Date(process.env.NOW ?? Date.now());
+if (Number.isNaN(now.getTime())) throw new Error("invalid NOW");
 const matches = (expression, value) =>
   expression === "*" ||
   Number(expression) === value ||
@@ -20,7 +21,7 @@ const scheduled = Object.entries(config.automations)
   })
   .map(([name]) => name);
 const requested = process.env.AUTOMATION;
-if (requested && !config.automations[requested]) {
+if (requested && !Object.hasOwn(config.automations, requested)) {
   throw new Error(`unknown automation: ${requested}`);
 }
 console.log(JSON.stringify(requested ? [requested] : scheduled));

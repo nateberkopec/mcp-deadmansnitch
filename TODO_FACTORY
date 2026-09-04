@@ -1,17 +1,17 @@
 # Factory activation checklist
 
-The factory implementation is built, committed, pushed, independently reviewed, and CI-green. It remains unsealed. Complete this checklist before authorizing unattended operation through product Phases 1–5.
+The factory remains unsealed and under qualification. Complete this checklist before authorizing unattended operation through product Phases 1–5. Detailed evidence and the invariant audit live in `factory/qualification.md`; controlled tests do not replace live lifecycle proof.
 
 ## 1. Install and test scheduled automation
 
 - [x] Enable GitHub Issues so the factory can persist control and worker state.
 - [x] Start or recover the persistent chief-of-staff thread with an explicit maximum implementation concurrency.
-- [ ] Confirm fresh startup and recovery report readiness and wait for an explicit assignment without launching work.
+- [x] Confirm fresh startup and recovery report readiness and wait for an explicit assignment without launching work.
 - [ ] Authorize a bounded automation qualification run before installing or dispatching automations.
 - [ ] From that active thread, run `factory.prepare-automations` and copy the private webhook URL from its dialog.
 - [ ] Run `bin/install-factory-automations` locally with owner authority to store the webhook secret and enable the repository automation variable.
 - [ ] Manually dispatch `.github/workflows/automations.yml` and confirm the webhook wakes the correct chief thread.
-- [ ] Confirm an hourly run delayed past minute zero still selects the intended hourly slot.
+- [x] Confirm an hourly run delayed past minute zero still selects the intended hourly slot.
 - [ ] Deliver the same webhook event more than once and confirm each event/automation pair launches at most one paid run.
 - [ ] Fill each suggestion queue and the implementation queue, then confirm finding-producing automation records `SKIPPED` without launching an orb.
 - [ ] Force an automation failure and confirm it records `FAILED`, Amp usage or explicit unavailability, and retries only within the agent's attempt limit.
@@ -21,14 +21,14 @@ The factory implementation is built, committed, pushed, independently reviewed, 
 
 Completion criterion: manual and scheduled delivery, delayed starts, duplicate delivery, backpressure, bounded retry, recovery, and durable accounting all pass without duplicate paid work.
 
-Startup evidence (2026-09-05): control issue #4 records chief thread `T-01a06e11-ff37-7193-bd63-40f47e1e8dee` and concurrency 1. The chief reported prepared and waiting at `e585236`, with no workers or automations launched. CI passed at that head. Startup recovered the reservation left by a failed orb launch; recovery of an existing chief remains untested. GitHub variable installation and branch-protection checks use owner-side credentials because the orb integration returned 403 for those reads.
+Startup evidence (2026-09-05): control issue #4 records chief thread `T-01a06e11-ff37-7193-bd63-40f47e1e8dee` and concurrency 1. The chief reported prepared and waiting at `e585236`, with no workers or automations launched. CI passed at that head. Startup recovered the reservation left by a failed orb launch; existing-chief recovery returned the same thread and capacity without appending another startup message after switching the local recovery path to CLI transcript export. The direct plugin transcript API rejects unconnected remote threads. GitHub variable installation and branch-protection checks use owner-side credentials because the orb integration returned 403 for those reads.
 
 ## 2. Qualify the complete implementation-issue lifecycle
 
 Use real GitHub state and an independently mergeable qualification issue. Keep one implementation issue mapped to one persistent worker.
 
 - [ ] Confirm the chief creates an implementation issue only while configured worker capacity is available.
-- [ ] Confirm activation applies both `factory:implementation` and `factory:active` labels.
+- [x] Confirm activation applies both `factory:implementation` and `factory:active` labels.
 - [ ] Confirm the worker runs in a fresh mise-backed Amp orb and installs pinned tooling and plugin dependencies.
 - [ ] Confirm later attempts resume the same worker thread rather than creating another worker.
 - [ ] Cause a deterministic check to fail and confirm the worker receives a bounded retry.
@@ -43,7 +43,7 @@ Use real GitHub state and an independently mergeable qualification issue. Keep o
 - [ ] Confirm merge succeeds only through `factory_merge_pull_request` after every deterministic gate passes.
 - [ ] Confirm merge removes `factory:active` and records total worker usage.
 - [ ] Restart or interrupt the controller and confirm GitHub state recovers the worker, attempt, PR, and control reservations.
-- [ ] Exercise startup reservation recovery and confirm it neither duplicates the chief nor loses the durable control issue.
+- [x] Exercise startup reservation recovery and confirm it neither duplicates the chief nor loses the durable control issue.
 - [ ] Exercise the full attempt budget in a disposable qualification case and confirm exhaustion records `FACTORY_BLOCKED`, reports an interminable blocker, records worker usage, and halts further attempts.
 
 Completion criterion: the evidence covers retries, feedback, stale heads, conflicts, CI, merge, restart recovery, reservation recovery, and exhaustion. No path creates a second worker for one issue or merges from stale evidence.
@@ -51,13 +51,13 @@ Completion criterion: the evidence covers retries, feedback, stale heads, confli
 ## 3. Validate fresh and resumed orb environments
 
 - [ ] Run implementation, review, conflict-resolution, QA, bug-finding, factory-improvement, and maintenance roles through their repository-owned agent definitions.
-- [ ] Confirm every non-chief role uses `executor: "orb"`.
+- [x] Confirm every non-chief role uses `executor: "orb"`.
 - [ ] Confirm fresh orbs run `factory/orb/setup`, use pinned mise tools, and run `npm ci` for the factory plugin.
 - [ ] Confirm resumed orbs run `factory/orb/resume` and verify the prepared environment within Amp's ten-second wait, without reinstalling dependencies.
 - [ ] Run `bin/check-dev-env` from a clean orb.
 - [ ] Run `mise run linecount:factory` and `mise run linecount:projects` from a clean orb.
 - [ ] Import and typecheck the plugin from a clean orb.
-- [ ] Confirm the main project receives no DMS credentials.
+- [x] Confirm the main project receives no DMS credentials.
 - [ ] Confirm twin-validation receives only `DEADMANSNITCH_API_KEY`.
 - [ ] Confirm holdout-validation receives only `MCP_DEADMANSNITCH_HOLDOUT_TOKEN`.
 - [ ] Confirm logs, errors, reports, transcripts, and durable status records reveal no credential values.
@@ -81,13 +81,13 @@ Completion criterion: every configured route has a real dispatcher, correct proj
 
 ## 5. Resolve remaining invariants honestly
 
-- [ ] Audit every `Planned` and `Partial` invariant in `factory/invariants.md`.
-- [ ] Move a factory or release invariant to `Guarded` only when a named review or authority control exists.
-- [ ] Move an invariant to `Enforced` only when a passing deterministic proof blocks violations.
-- [ ] Keep unimplemented product requirements honestly `Planned` until their product phase implements them.
+- [x] Audit every `Planned` and `Partial` invariant in `factory/invariants.md`.
+- [x] Move a factory or release invariant to `Guarded` only when a named review or authority control exists.
+- [x] Move an invariant to `Enforced` only when a passing deterministic proof blocks violations.
+- [x] Keep unimplemented product requirements honestly `Planned` until their product phase implements them.
 - [ ] Resolve release invariants INV-060, INV-061, and INV-062 before release activation.
-- [ ] Before the Phase 1–5 factory activation, explicitly decide whether Phase 6 release invariants are outside that activation boundary or must be implemented first.
-- [ ] Record that scope decision in the authoritative factory policy rather than relying on conversational context.
+- [x] Before the Phase 1–5 factory activation, explicitly decide whether Phase 6 release invariants are outside that activation boundary or must be implemented first.
+- [x] Record that scope decision in the authoritative factory policy rather than relying on conversational context.
 
 Completion criterion: no non-product invariant is mislabeled, every `Guarded` or `Enforced` claim names real proof, and the Phase 6 boundary is explicit.
 

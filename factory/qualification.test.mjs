@@ -77,6 +77,7 @@ async function harness() {
         async $(strings, ...values) {
           const command = strings.reduce((text, part, index) => text + part + (values[index] ?? ""), "").replace(/^mise exec -- /, "");
           requests.push(command);
+          if (command.startsWith("amp threads export")) return result({ messages: threads.get(values[0]).transcript });
           if (command.startsWith("amp threads usage")) return h.usageAvailable ? result("usage=1") : failure();
           if (command.startsWith("gh label create")) return result("");
           if (command.startsWith("gh repo view")) return result("owner/repo");
@@ -144,6 +145,7 @@ test("startup and recovery retain one chief and grant no implementation assignme
   const h = await harness();
   h.issues.clear();
   const first = await h.call("factory_start_chief_of_staff", { maxConcurrency: 1 });
+  h.created[0].messages = async () => { throw new Error("thread.messages is only available for connected threads"); };
   await h.reload();
   const recovered = await h.call("factory_start_chief_of_staff", { maxConcurrency: 1 });
   assert.equal(recovered.threadID, first.threadID);

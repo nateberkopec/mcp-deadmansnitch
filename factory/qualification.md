@@ -6,17 +6,20 @@ This record separates controlled local tests from live Amp/GitHub proof. Neither
 
 `factory/qualification.test.mjs` executes the production plugin against in-memory implementations of the Amp and GitHub interfaces. `factory/check.mjs` runs it locally and in CI. It covers startup/recovery, all eight mode registrations, orb executor selection, unauthorized-controller rejection, concurrent worker capacity, persistent worker reuse, attempt limits, third-attempt guidance, terminal usage, all four queue capacities, duplicate automation delivery, failure/cancellation, completion-write recovery, stale review heads, failed/incomplete CI, provenance rejection, and qualified merge accounting.
 
+Sixteen tests also cover private webhook handoff without GitHub administrative writes, webhook event deduplication and validation, and separate conflict-resolver execution invalidating the old review. The test runner has a ten-second timeout. Twelve direct dispatcher cases passed against the executable script, covering a 59-minute hourly delay and daily, weekly, and monthly boundaries. Issue #5 tracks permanent dispatcher regression tests and the observed invalid-clock bug.
+
 Qualification reproduced a lost-record defect: worker creation succeeded, its GitHub record failed, and a later attempt created another worker. Commit `67aa849` makes an existing reservation with no worker record block another creation. Recovering the orphan's identity still requires evidence; the guard prevents duplication without claiming automatic recovery.
 
 These checks exercise real orchestration code but do not prove Amp delivery timing, GitHub permissions, webhook installation, automatic orb wake, or actual agent compliance. Checklist items requiring those observations remain open.
 
 ## Live evidence
 
-- Chief `T-01a06e11-ff37-7193-bd63-40f47e1e8dee` owns control issue #4 at capacity 1. Startup reported readiness and waited. The reservation from an earlier failed launch was reused.
+- Chief `T-01a06e11-ff37-7193-bd63-40f47e1e8dee` owns control issue #4 at capacity 1. Startup reported readiness and waited. The reservation from an earlier failed launch was reused. Local recovery initially failed because the plugin transcript API only supports connected threads; CLI export now checks the startup message. The regression test reproduced the failure, and a live retry returned the same chief, capacity 1, and `resumed: true`.
 - At `e4e5bf2`, explicit setup passed in 24.773 seconds, resume passed twice in 1.027 and 1.045 seconds, and direct environment checks passed in 6.146 seconds. Both line-count tasks passed, the checkout stayed clean, and CI passed.
 - Main's environment membership checks show both DMS and holdout variables absent, including under mise. A model initially misread a redaction marker as presence; the explicit boolean recheck corrected that finding.
 - Read-only Amp inventory on 2026-09-05 found no main-project, personal, or workspace secrets. Twin-validation lists only `DEADMANSNITCH_API_KEY`; the private holdout project lists only `MCP_DEADMANSNITCH_HOLDOUT_TOKEN`. No values were inspected. Fresh runtime checks in those projects remain outstanding.
 - Direct CLI and built-in mode discovery could not select the runtime-registered reviewer. The factory's own reviewer-launch path remains to be qualified through implementation issue #5.
+- Issue #5 received both implementation and active labels after the chief checked capacity. Two worker-start attempts failed on GitHub authentication before creating a branch or worker. The chief recorded the blocker and unavailable worker usage on issues #4 and #5. The plugin now invokes GitHub through mise, matching the successful orb probes. After `3c99b5e`, the chief successfully created worker `T-01a06e37-c146-769f-b255-3dbac8ab6369` on `factory/issue-5` and persisted attempt 1. Review and merge remain pending.
 
 ## Invariant audit
 

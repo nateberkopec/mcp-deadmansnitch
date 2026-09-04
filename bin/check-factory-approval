@@ -33,9 +33,17 @@ fi
 head_sha="$(gh api "repos/$GH_REPOSITORY/pulls/$GH_PR_NUMBER" --jq '.head.sha')"
 approvals="$(gh api --paginate "repos/$GH_REPOSITORY/pulls/$GH_PR_NUMBER/reviews" --jq ".[] | select(.state == \"APPROVED\") | select(.commit_id == \"$head_sha\") | select(.user.type == \"User\") | select(.author_association == \"OWNER\" or .author_association == \"MEMBER\" or .author_association == \"COLLABORATOR\") | .id")"
 
-if [[ -z "$approvals" ]]; then
-  printf '%s\n' 'FACTORY APPROVAL REQUIRED: a trusted human must approve the current PR head'
-  exit 1
+if [[ -n "$approvals" ]]; then
+  printf '%s\n' 'Factory change has current-head human review approval.'
+  exit 0
 fi
 
-printf '%s\n' 'Factory change has current-head human approval.'
+owner="${GH_REPOSITORY%%/*}"
+signer="$(gh api "repos/$GH_REPOSITORY/commits/$head_sha" --jq 'if .commit.verification.verified and .committer.type == "User" then .committer.login else "" end')"
+if [[ "$signer" == "$owner" ]]; then
+  printf '%s\n' 'Factory change has an owner-signed current-head commit.'
+  exit 0
+fi
+
+printf '%s\n' 'FACTORY APPROVAL REQUIRED: obtain trusted human review or an owner-signed current-head commit'
+exit 1

@@ -8,4 +8,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-      - run: echo 'Live differential execution begins after Phase 1 and requires explicit secret authorization.'
+      - run: echo 'Live twin-fidelity execution begins after Phase 1 and is the sole factory-owned DMS API key consumer.'

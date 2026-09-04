@@ -22,16 +22,20 @@ flowchart LR
 
 Puck is the operator interface: it launches, monitors, steers, and summarizes work. The checked-in plugin remains the durable control plane for gates, retries, events, and merge policy.
 
-The main Amp project runs implementation without DMS credentials. Live differential checks and holdouts run only in the validation project, which owns narrowly scoped secrets. Regular development and tests use the deterministic twin rather than the live service.
+The main Amp project runs implementation without DMS credentials. A twin-validation project is the sole holder of the factory-owned DMS test key and uses it only to build or verify twin fidelity. A separate holdout-validation project receives only the holdout token and tests through the twin. The privileged DMS account has functionally unlimited snitches and rate limit, but differential runs remain bounded and self-cleaning.
 
 ```mermaid
 flowchart TB
     P[Factory plugin] --> MAIN[Main project]
-    P --> VALIDATE[Validation project]
+    P --> TV[Twin-validation project]
+    P --> HV[Holdout-validation project]
     MAIN --> TWIN[Digital twin]
-    VALIDATE --> LIVE[Live DMS API]
-    VALIDATE --> HOLDOUT[Private holdouts]
-    MAIN -. no DMS secrets .-> LIVE
+    TV --> TWIN
+    TV --> LIVE[Live DMS API]
+    HV --> TWIN
+    HV --> HOLDOUT[Private holdouts]
+    MAIN -. no factory DMS key .-> LIVE
+    HV -. no factory DMS key .-> LIVE
 ```
 
 ## Repository structure

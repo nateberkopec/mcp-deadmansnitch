@@ -4,7 +4,8 @@
 - Authority: report-only
 - Condition: The twin agrees with the live API.
 - Drift signal: A normalized differential diff.
-- Action: Open an issue with the diff; never mutate pre-existing records.
+- Credential boundary: This twin-fidelity run is the sole consumer of the factory-owned DMS API key. The key is never passed to client, MCP, scenario, QA, holdout, review, or release work.
+- Action: Run a bounded, self-cleaning differential probe and open an issue with the diff; never mutate pre-existing records. The privileged account has functionally unlimited snitches and rate limit, but the run does not infer ordinary quota behavior from it.
 - Durable state: The differential golden and latest report.
 - Retirement: Retire if the external API is removed.
 

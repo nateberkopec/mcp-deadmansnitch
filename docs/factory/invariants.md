@@ -57,7 +57,7 @@ Factory-owned index. Implementing agents use routed guardrails; rationale and fu
 
 | ID | Invariant | Proof | Status |
 |---|---|---|---|
-| INV-040 | Ordinary tests use the twin; live calls are explicit validation. | isolation, CI | Enforced |
+| INV-040 | Only twin differential runs use the factory-owned DMS key; all other tests use the twin. | project isolation, CI | Partial |
 | INV-041 | Twin fidelity includes awkward statuses and legacy fields without shared code. | differential cases, holdouts | Planned |
 | INV-042 | Frozen time, seeded tokens, and reset state make scenarios repeatable. | repeatability tests | Planned |
 | INV-043 | Proof matches the changed layer; skipped proof is reported. | testing guardrail, review | Guarded |
@@ -71,7 +71,7 @@ Factory-owned index. Implementing agents use routed guardrails; rationale and fu
 |---|---|---|---|
 | INV-050 | Post-Phase-0 work runs in isolated mise-backed Amp orbs. | executor tests | Planned |
 | INV-051 | Exit codes, never models, decide deterministic gates. | gate tests | Partial |
-| INV-052 | Only validation orbs receive DMS and holdout credentials. | Amp controls, access spike | Enforced |
+| INV-052 | Twin-validation alone receives the factory-owned DMS key; holdout-validation receives only its repository token. | Amp project controls | Planned |
 | INV-053 | Passing CI and a reviewer with no further feedback permits merge; factory changes also need current-head human approval. | workflow, Factory Approval check | Partial |
 | INV-054 | Publishing, destructive, paid-orb, and account actions require authority. | agent policy, authority controls | Guarded |
 | INV-055 | Transcript analysis stores only aggregate sanitized evidence. | runbook, review, gitleaks | Guarded |

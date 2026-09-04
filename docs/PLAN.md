@@ -62,7 +62,7 @@ that this section does not list.
 | Decision | Choice |
 |---|---|
 | Factory plane | The factory plane is Amp. Orbs are the only execution environment for implementation, review, judging, QA, and the background loops. Reuse nothing from sfactory |
-| What runs locally | Two things run locally. The first is the workflow orchestrator, which is the Amp plugin in this repo. The second is one chief-of-staff agent (Puck or an equivalent) that reports, routes questions, and launches work. No one writes or tests code on the local machine |
+| Operator interface | Puck reports, routes questions, launches work, monitors agents, and summarizes results. It replaces any separate coordinator thread but not the checked-in factory plugin, which owns deterministic workflow policy. No one writes or tests code on the local machine |
 | Isolation | Use one fresh orb for each attempt, each review, each judgment, and each loop run. `.agents/setup` installs the mise toolchain, warms the cargo cache, and builds the twin. Amp makes a snapshot of the orb for reuse. `.agents/resume` checks the toolchain again |
 | Secrets in orbs | Use Amp OIDC workload identity for services that support federation. DMS does not, so keep its static key as a secret in a dedicated Amp validation project used only by the drift loop and QA explorer; implementation orbs use the main project and never receive it |
 | Workflows | The plugin is TypeScript and is checked in at `.amp/plugins/factory/`. Phases 1 through 5 are pipeline functions. The gates are `amp.$` shell steps. The exit code decides whether the pipeline continues, and the model never runs a gate. Attempt budgets, parallel attempts, merge policy, and approval checks are code. Each attempt pushes a branch. The plugin records the workflow state in the repo, because Amp has no checkpoint and no resume |
@@ -200,9 +200,7 @@ Retries, attempt budgets, parallel attempts, merge policy, and approval checks
 are policy, and therefore they are code, not prompt text.
 
 The plane is Amp. Each attempt, review, judgment, QA run, and background loop
-runs in its own orb. The local machine runs the orchestrator plugin and one
-chief-of-staff agent, and nothing else. Amp's schedules and durable webhooks
-wake the sleeping orbs for the loops. A failed run pauses an Amp automation,
+runs in its own orb. Puck is the operator interface, while the checked-in plugin orchestrates deterministic workflow steps. Amp's schedules and durable webhooks wake the sleeping orbs for the loops. A failed run pauses an Amp automation,
 so the plugin registers a durable factory-health webhook as the recovery path.
 Each loop delegates to its runbook and reports its status at the end, and the
 loop-health loop watches for paused schedules.

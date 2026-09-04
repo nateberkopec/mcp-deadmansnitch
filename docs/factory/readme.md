@@ -6,7 +6,7 @@ Most pull requests merge as soon as CI passes and an independent reviewer report
 
 ```mermaid
 flowchart LR
-    H[Approved work] --> C[Chief of staff]
+    H[Approved work] --> C[Puck]
     C --> P[Factory plugin]
     P --> A[Fresh implementation orb]
     A --> G[mise and CI gates]
@@ -19,6 +19,8 @@ flowchart LR
     F -->|yes| U[Current-head human approval]
     U --> M
 ```
+
+Puck is the operator interface: it launches, monitors, steers, and summarizes work. The checked-in plugin remains the durable control plane for gates, retries, events, and merge policy.
 
 The main Amp project runs implementation without DMS credentials. Live differential checks and holdouts run only in the validation project, which owns narrowly scoped secrets. Regular development and tests use the deterministic twin rather than the live service.
 

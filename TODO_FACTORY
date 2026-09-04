@@ -21,7 +21,7 @@ The factory implementation is built, committed, pushed, independently reviewed, 
 
 Completion criterion: manual and scheduled delivery, delayed starts, duplicate delivery, backpressure, bounded retry, recovery, and durable accounting all pass without duplicate paid work.
 
-Startup evidence (2026-09-05): control issue #4 records chief thread `T-01a06e11-ff37-7193-bd63-40f47e1e8dee` and concurrency 1. The chief reported prepared and waiting at `e585236`, with no workers or automations launched. CI passed at that head. Startup recovered the reservation left by a failed orb launch; recovery of an existing chief remains untested. Fresh-orb environment qualification remains blocked by missing fish and initial cargo/hk PATH failures. The orb's GitHub integration also returned 403 for repository variables and branch-protection reads.
+Startup evidence (2026-09-05): control issue #4 records chief thread `T-01a06e11-ff37-7193-bd63-40f47e1e8dee` and concurrency 1. The chief reported prepared and waiting at `e585236`, with no workers or automations launched. CI passed at that head. Startup recovered the reservation left by a failed orb launch; recovery of an existing chief remains untested. GitHub variable installation and branch-protection checks use owner-side credentials because the orb integration returned 403 for those reads.
 
 ## 2. Qualify the complete implementation-issue lifecycle
 
@@ -63,6 +63,8 @@ Completion criterion: the evidence covers retries, feedback, stale heads, confli
 - [ ] Confirm logs, errors, reports, transcripts, and durable status records reveal no credential values.
 
 Completion criterion: fresh and resumed execution produce the same passing checks while maintaining the three-project credential boundary.
+
+Existing-chief evidence (2026-09-05, `e4e5bf2`): setup passed in 24.773 s; two explicit resume runs passed in 1.027 s and 1.045 s; direct `bin/check-dev-env` passed in 6.146 s. Both line-count tasks passed, and the working tree remained clean. Explicit environment-membership checks showed both credential variables absent in the normal shell and under mise; an earlier model report misinterpreted redacted output and was corrected. CI passed. A fresh orb and automatic wake still need verification. Direct CLI and built-in mode-discovery attempts could not launch the runtime-registered reviewer mode; no review orb was created and independent review remains outstanding.
 
 ## 4. Add later dispatcher coverage only when executable
 

@@ -1,4 +1,5 @@
 import { lstatSync, readFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import { agentNames, loadAgentFile } from "./amp/plugin/index.ts";
 
 const read = (path) => JSON.parse(readFileSync(path, "utf8"));
@@ -36,3 +37,4 @@ for (const [name, queue] of Object.entries(queues)) {
 const agentGuideWords = readFileSync("AGENTS.md", "utf8").trim().split(/\s+/).length;
 if (agentGuideWords > 100) throw new Error("AGENTS.md exceeds 100 words");
 console.log("Factory configuration checks passed.");
+execFileSync(process.execPath, ["--test", "factory/qualification.test.mjs"], { stdio: "inherit" });

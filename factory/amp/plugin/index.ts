@@ -363,7 +363,9 @@ export default async function factoryPlugin(amp: PluginAPI): Promise<void> {
           return JSON.stringify({ issue, threadID: id, resumed: true });
         }
         const branch = `factory/issue-${issue}`;
-        await reserveBranch(branch);
+        if (!(await reserveBranch(branch))) {
+          throw new Error(`worker startup is reserved for issue #${issue}; recover its missing worker record before retrying`);
+        }
         const thread = await worker.createThread({ executor: workerConfig.executor, visibility: workerConfig.visibility });
         const record = await amp.$`gh issue comment ${issue} --body ${`FACTORY_WORKER ${thread.id}\nFACTORY_ATTEMPT 1`}`;
         if (record.exitCode !== 0) {

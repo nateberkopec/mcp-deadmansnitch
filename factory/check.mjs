@@ -1,7 +1,10 @@
-import { readFileSync } from "node:fs";
+import { lstatSync, readFileSync } from "node:fs";
 import { agentNames, loadAgentFile } from "./amp/plugin/index.ts";
 
 const read = (path) => JSON.parse(readFileSync(path, "utf8"));
+for (const path of [".amp", ".amp/plugins", ".amp/plugins/factory", ".amp/plugins/factory/index.ts"]) {
+  if (lstatSync(path).isSymbolicLink()) throw new Error(`Amp plugin path cannot be a symbolic link: ${path}`);
+}
 const agents = new Set(agentNames);
 for (const name of agents) loadAgentFile(name);
 const queues = read("factory/queues.json");

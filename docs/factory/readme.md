@@ -2,7 +2,7 @@
 
 The factory is the repository-owned system that turns approved work into reviewed, verified changes. Amp supplies orchestration and isolated orbs; this repository supplies policy, workflows, runbooks, and deterministic `mise` gates. Agents propose and evaluate changes, while shell exit codes decide mechanical gates.
 
-Most pull requests merge as soon as CI passes and an independent reviewer reports no further feedback. A pull request that touches the factory additionally requires trusted human approval of its current head. Publishing and account changes retain their explicit authority requirements.
+Most pull requests merge as soon as CI passes and an independent reviewer reports no further feedback. After final activation, a pull request that touches the factory additionally requires a current-head commit signed by the repository owner. Branch protection and that signature gate remain disabled while the factory itself is under active construction. Publishing and account changes retain their explicit authority requirements.
 
 ```mermaid
 flowchart LR
@@ -16,7 +16,7 @@ flowchart LR
     V -->|feedback| A
     V -->|no further feedback| F{Factory changed?}
     F -->|no| M[Merge]
-    F -->|yes| U[Current-head human approval]
+    F -->|yes| U[Owner-signed current head]
     U --> M
 ```
 
@@ -49,6 +49,6 @@ flowchart TB
 
 The factory-improvement loop examines failures, sanitized process evidence, and unenforced invariants. Its pull requests follow the same merge policy and require human approval because they change the factory. A durable health webhook provides recovery because failed Amp schedules pause.
 
-`bin/check-factory-approval` defines factory-sensitive paths. The `Factory Approval` workflow passes immediately for other changes and requires a trusted human approval tied to the current commit for factory changes. The check must be required by the `main` branch ruleset.
+Installing branch protection and the owner-signature gate is the final factory activation step, after unattended Phase 1–5 execution is ready.
 
 The Phase 0 foundation is verified. Orb setup, isolation, secret delivery, deterministic gate behavior, and webhook recovery work. Phase pipelines, automated reviewed-and-green merging, bounded attempt controllers, parallel review, durable workflow state, issue routing, and scheduled loops are implemented incrementally with the product phases.

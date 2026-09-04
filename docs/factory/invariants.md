@@ -72,7 +72,7 @@ Factory-owned index. Implementing agents use routed guardrails; rationale and fu
 | INV-050 | Post-Phase-0 work runs in isolated mise-backed Amp orbs. | executor tests | Planned |
 | INV-051 | Exit codes, never models, decide deterministic gates. | gate tests | Partial |
 | INV-052 | Twin-validation alone receives the factory-owned DMS key; holdout-validation receives only its repository token. | Amp project controls | Planned |
-| INV-053 | Passing CI and a reviewer with no further feedback permits merge; factory changes also need current-head human approval. | workflow, Factory Approval check | Partial |
+| INV-053 | Passing CI and a reviewer with no further feedback permits merge; after activation, factory changes also need an owner-signed current head. | merge workflow, final activation gate | Planned |
 | INV-054 | Publishing, destructive, paid-orb, and account actions require authority. | agent policy, authority controls | Guarded |
 | INV-055 | Transcript analysis stores only aggregate sanitized evidence. | runbook, review, gitleaks | Guarded |
 | INV-056 | Durable knowledge lives in repository docs. | operating-loop review | Guarded |

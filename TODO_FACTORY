@@ -8,8 +8,8 @@ The factory implementation is built, committed, pushed, independently reviewed, 
 - [x] Start or recover the persistent chief-of-staff thread with an explicit maximum implementation concurrency.
 - [ ] Confirm fresh startup and recovery report readiness and wait for an explicit assignment without launching work.
 - [ ] Authorize a bounded automation qualification run before installing or dispatching automations.
-- [ ] From that active thread, run `factory.install-automations`.
-- [ ] Approve the prompted GitHub account mutation that stores the Amp webhook secret and enables the repository automation variable.
+- [ ] From that active thread, run `factory.prepare-automations` and copy the private webhook URL from its dialog.
+- [ ] Run `bin/install-factory-automations` locally with owner authority to store the webhook secret and enable the repository automation variable.
 - [ ] Manually dispatch `.github/workflows/automations.yml` and confirm the webhook wakes the correct chief thread.
 - [ ] Confirm an hourly run delayed past minute zero still selects the intended hourly slot.
 - [ ] Deliver the same webhook event more than once and confirm each event/automation pair launches at most one paid run.

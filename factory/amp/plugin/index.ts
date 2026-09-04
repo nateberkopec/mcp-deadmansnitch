@@ -871,11 +871,11 @@ export default async function factoryPlugin(amp: PluginAPI): Promise<void> {
   });
 
   amp.registerCommand(
-    "factory.install-automations",
+    "factory.prepare-automations",
     {
-      title: "Install factory automations",
+      title: "Prepare factory automations",
       category: "factory",
-      description: "Register the Amp wake-up webhook and store it as a GitHub Actions secret.",
+      description: "Register the Amp wake-up webhook for installation through the owner's local GitHub CLI.",
     },
     async (ctx) => {
       if (ctx.thread === undefined) {
@@ -883,15 +883,7 @@ export default async function factoryPlugin(amp: PluginAPI): Promise<void> {
       }
       const state = await control();
       if (state === undefined || state.threadID !== ctx.thread.id) {
-        throw new Error("install automations from the active chief-of-staff thread");
-      }
-      const confirmed = await ctx.ui.confirm({
-        title: "Install factory automations?",
-        message: "This changes the repository's GitHub Actions secrets and enables paid scheduled orbs.",
-        confirmButtonText: "Install",
-      });
-      if (!confirmed) {
-        return;
+        throw new Error("prepare automations from the active chief-of-staff thread");
       }
       const registration = await amp.createWebhook({
         key: "factory-automations",
@@ -928,12 +920,12 @@ export default async function factoryPlugin(amp: PluginAPI): Promise<void> {
           }
         },
       });
-      const secret = await amp.$`gh secret set AMP_FACTORY_WEBHOOK --body ${registration.url}`;
-      const enabled = await amp.$`gh variable set FACTORY_AUTOMATIONS_ENABLED --body true`;
-      if (secret.exitCode !== 0 || enabled.exitCode !== 0) {
-        throw new Error(secret.stderr || enabled.stderr);
-      }
-      await ctx.ui.notify("Factory automations installed.");
+      await ctx.ui.input({
+        title: "Copy the private webhook URL",
+        helpText: "Run bin/install-factory-automations locally and paste this URL into its masked prompt. Treat the URL as a credential; keep it out of chat, logs, and shell commands. GitHub configuration has not changed.",
+        initialValue: registration.url,
+        submitButtonText: "Done",
+      });
     },
   );
 }

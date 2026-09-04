@@ -1,0 +1,24 @@
+#!/usr/bin/env fish
+
+for tool in gh gum
+    if not command -q $tool
+        printf 'Required command unavailable: %s\n' $tool >&2
+        exit 1
+    end
+end
+
+set -l repository nateberkopec/mcp-deadmansnitch
+gum style --border rounded "Install factory automations for $repository" 'This stores the webhook secret and enables hourly delivery.'
+set -l webhook_url (gum input --password --placeholder 'Paste the private Amp webhook URL')
+or exit 1
+if not string match --quiet --regex '^https://ampcode\.com/\S+$' -- $webhook_url
+    printf 'Expected an HTTPS webhook URL on ampcode.com.\n' >&2
+    exit 1
+end
+
+printf '%s' "$webhook_url" | gh secret set AMP_FACTORY_WEBHOOK --repo $repository
+or exit 1
+set --erase webhook_url
+gh variable set FACTORY_AUTOMATIONS_ENABLED --repo $repository --body true
+or exit 1
+gum style --foreground 2 'Factory automation delivery enabled.'
